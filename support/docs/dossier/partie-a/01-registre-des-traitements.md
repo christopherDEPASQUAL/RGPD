@@ -1,257 +1,109 @@
-# Partie A.1 — Registre des activités de traitement de WellWork
+# Partie A.1 — Cartographie initiale des traitements WellWork
 
-- **Version :** 1.0 — 30 septembre 2026
-- **Référence technique auditée :** `baseline-vulnerable`, commit `e16cedcf0f8adb359621240366c8f0cbb251b8c9`
-- **Statut :** registre initial construit à partir du code fourni ; informations organisationnelles et contractuelles à faire valider par WellWork
-- **Périmètre :** plateforme B2B WellWork, API, interface web, stockage JSON, journaux et flux décrits dans le support pédagogique
+- **Version :** 1.3 — 1er octobre 2026
+- **Référence technique :** `baseline-vulnerable`, commit `e16cedcf0f8adb359621240366c8f0cbb251b8c9`
+- **Périmètre :** application WellWork, données et flux décrits dans l'énoncé et observables dans le support fourni
 
-## 1. Méthode et cadre
+> Cette cartographie est structurée selon l'article 30 du RGPD. Elle recense les finalités, personnes, données, destinataires, transferts, durées et protections connus, mais ne constitue pas encore le registre organisationnel définitif. [A.2](02-bases-legales-et-acteurs.md) analyse les rôles sous hypothèses explicites, faute de contrats. Les activités réalisées comme responsable de traitement et celles réalisées comme sous-traitant devront être distinguées dans les registres appropriés après validation de ces rôles.
 
-L'article 30 du RGPD impose au responsable de traitement un registre écrit mentionnant notamment les finalités, les catégories de personnes et de données, les destinataires, les éventuels transferts hors UE, les délais d'effacement et, dans la mesure du possible, une description générale des mesures de sécurité. La CNIL recommande une fiche par activité et précise que les traitements doivent être identifiés **par finalité et non par logiciel**.
+La CNIL recommande d'identifier les traitements par finalité et non par logiciel. Les affirmations ci-dessous distinguent donc les activités annoncées dans l'énoncé, les faits observés dans le code et les informations restant à confirmer.
 
-Le présent registre décrit donc sept activités distinctes observées dans WellWork. Il reflète l'état du code, y compris ses lacunes : une destination ou une durée inconnue est indiquée « à confirmer » au lieu d'être inventée. La qualification de WellWork, des entreprises clientes et de l'assureur comme responsable, sous-traitant ou responsables conjoints sera traitée dans la partie A.2 ; elle n'est pas présumée ici.
+## Informations générales disponibles et manquantes
 
-Les réponses portant sur le poids, la taille, le sommeil, le stress, les antécédents et les traitements sont classées comme données concernant la santé. La CNIL retient une définition large incluant les antécédents, les traitements et les mesures permettant de déduire l'état de santé.
-
-## 2. En-tête du registre
-
-| Information générale exigée | État du dossier |
+| Élément | État |
 |---|---|
-| Organisme | WellWork — nom commercial déduit de `README.md` et `src/config.js`; raison sociale à confirmer |
-| Adresse et coordonnées | À fournir par WellWork |
-| Représentant légal | À fournir par WellWork |
-| Responsable(s) de traitement / responsables conjoints | À qualifier en partie A.2 à partir des contrats avec les entreprises clientes et l'assureur |
-| Représentant dans l'Union européenne | Situation d'établissement inconnue; à confirmer |
-| Délégué à la protection des données | Désignation et coordonnées non fournies; à confirmer |
-| Responsable de la tenue du registre | À désigner; mise à jour recommandée par le DPO ou le référent protection des données |
-| Sous-traitants techniques | Aucun contrat, hébergeur ou prestataire effectivement utilisé n'est documenté dans le support |
-| Dernière revue | 30 septembre 2026 |
-| Prochaine revue | À chaque évolution de finalité, donnée, destinataire, durée, transfert ou mesure de sécurité; échéance périodique interne à fixer |
+| Organisme | « WellWork » est le nom utilisé par le support; raison sociale, adresse et coordonnées à fournir |
+| Responsable, responsables conjoints ou clients responsables | Hypothèses en A.2, à valider à partir des décisions réelles et des contrats |
+| Représentant dans l'UE et DPO | Existence et coordonnées non documentées |
+| Sous-traitants techniques et hébergeur | Non documentés |
+| Responsable de la tenue du registre | À désigner |
 
-## 3. Vue d'ensemble
+Les antécédents et traitements médicaux sont des données de santé par nature. Le stress, le poids, la taille, le sommeil ou le tabagisme peuvent aussi révéler la santé par leur croisement, leur contexte ou l'usage qui en est fait; une mesure isolée ne doit toutefois pas être automatiquement qualifiée comme telle.
 
-| ID | Activité de traitement | Finalité principale | Personnes concernées | Sensibilité particulière | Preuve principale |
-|---|---|---|---|---|---|
-| RT-01 | Gestion des comptes et de l'authentification | Créer, administrer, authentifier et fermer les comptes | Salariés, RH, coachs, administrateurs | Authentifiants et jetons de session | `src/routes/accounts.js`, `src/auth.js` |
-| RT-02 | Questionnaires de santé et de bien-être | Recueillir et restituer les informations nécessaires au suivi de bien-être | Salariés utilisateurs | Données concernant la santé | `src/routes/data.js:10-27`, `db/seed.js:52-67` |
-| RT-03 | Messagerie coach–salarié | Permettre les échanges liés à l'accompagnement | Salariés et coachs; autres rôles techniquement possibles | Contenu libre susceptible de révéler la santé | `src/routes/data.js:37-45` |
-| RT-04 | Annuaire et consultation des profils | Rechercher et consulter les utilisateurs pour le suivi opérationnel | Salariés, RH, coachs, administrateurs | Profil, date de naissance; santé via la fiche détaillée | `src/routes/data.js:22-35` |
-| RT-05 | Export destiné à l'assureur | Produire un export des comptes et questionnaires | Tous les utilisateurs présents en base | Santé, identité, authentifiants dérivés | `src/routes/data.js:47-55` |
-| RT-06 | Préférences marketing et partage à des tiers | Enregistrer les choix relatifs au marketing et aux tiers | Utilisateurs inscrits | Préférences et preuve de choix | `src/routes/accounts.js:20-32` |
-| RT-07 | Journalisation technique et support | Tracer les inscriptions, connexions, changements de profil et exports | Utilisateurs et opérateurs | Authentifiants en clair dans l'état actuel | `src/logger.js`, appels à `log()` |
+## Fiches de traitement
 
-La collection `sessionsSport` existe dans le schéma (`src/db.js:13`) mais aucune route ni donnée correspondante n'est implémentée. Le suivi sportif n'est donc pas enregistré comme activité active. Une fiche devra être créée avant son activation.
+### RT-01 — Comptes et authentification
 
-## 4. Fiches détaillées
-
-### RT-01 — Gestion des comptes et de l'authentification
-
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Inscription; connexion; émission et contrôle des sessions; consultation et modification du profil; demande de suppression du compte; gestion des rôles techniques |
-| Personnes concernées | Salariés des entreprises clientes, RH, coachs et administrateurs WellWork |
-| Données traitées | Identifiant interne; adresse électronique; prénom; nom; entreprise; date de naissance; rôle; date de création; indicateur et date de suppression; préférence marketing; hash du mot de passe; jeton et date de session |
-| Sources | Saisie directe à l'inscription et à la connexion; rôle attribué par défaut ou présent dans le seed; modifications envoyées par l'utilisateur |
-| Opérations | Collecte, enregistrement, hachage, consultation, modification, authentification, émission de jeton, marquage comme supprimé |
-| Destinataires prévus | Utilisateur concerné; personnels WellWork habilités à administrer la plateforme — habilitations précises à confirmer |
-| Destinataires techniquement constatés | Tout utilisateur authentifié peut obtenir des profils via RT-04; administrateurs et RH peuvent recevoir tous les comptes via RT-05; le navigateur de l'utilisateur conserve le jeton dans `localStorage` (`public/index.html:41,51-52`) |
-| Transferts hors UE | Aucun transfert ni pays tiers démontré par le code. Hébergement, localisation des utilisateurs et accès de support à confirmer |
-| Conservation actuelle | Aucune durée ni purge. `DELETE /api/me` marque seulement `deleted: true`; la ligne, les sessions et les données liées restent présentes, et la reconnexion demeure possible |
-| Délai d'effacement à inscrire | À déterminer et faire valider pour chaque catégorie : compte actif, compte fermé, sessions et éventuel archivage contentieux. Aucun délai ne peut être déduit du support |
-| Mesures observées | Mot de passe transformé en SHA-256; middleware d'authentification; jeton Bearer; contrôle de rôle sur l'export |
-| Insuffisances documentées | SHA-256 sans sel; jeton prédictible et sans expiration; session admin préchargée; rôle modifiable par `PATCH /me`; `passwordHash` sérialisé; suppression et révocation absentes |
-| Preuves | `src/routes/accounts.js:11-64`; `src/auth.js:7-38`; `src/db.js:25-28`; `db/seed.js:71-72`; constats `SEC-02`, `SEC-03`, `PRIV-05`, `PRIV-06`, `SEC-05` |
-| Propriétaire métier à désigner | Direction produit / responsable des opérations de la plateforme, avec validation DPO et RSSI |
+- **Finalités :** créer et administrer les comptes, authentifier les utilisateurs, gérer les sessions, le profil et la demande de suppression.
+- **Personnes et données :** salariés, RH, coachs et administrateurs; identité, email, entreprise, date de naissance, rôle, statut du compte, dates de création/suppression, mot de passe saisi puis empreinte conservée, jeton et date de session, `marketingOptIn`.
+- **Destinataires :** utilisateur concerné et administrateurs habilités — périmètre à confirmer. En pratique, RT-04 expose des profils à tout compte authentifié et RT-05 les expose aux RH et administrateurs.
+- **Transferts et conservation :** aucun transfert hors UE démontré. Aucune durée ni purge applicative observée; procédures externes non documentées. `DELETE /api/me` conserve le compte et ses données liées. Les durées cibles doivent distinguer compte actif, compte fermé, session et éventuel archivage justifié.
+- **Protections observées :** authentification Bearer et empreinte SHA-256. Le navigateur stocke le jeton dans `localStorage`; il s'agit d'une modalité de stockage, pas d'un destinataire. Limites détaillées dans `SEC-02`, `SEC-03`, `SEC-05`, `PRIV-05` et `PRIV-06`.
+- **Références :** `src/routes/accounts.js:11-64`, `src/auth.js:7-38`, `public/index.html:41-57`.
 
 ### RT-02 — Questionnaires de santé et de bien-être
 
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Recueillir des réponses de santé et de bien-être; permettre leur restitution dans le profil; alimenter l'export prévu pour l'assureur. La finalité exacte de coaching, prévention ou assurance doit être confirmée séparément |
-| Personnes concernées | Salariés utilisateurs des entreprises clientes |
-| Données traitées | Identifiant utilisateur; poids; taille; durée de sommeil; niveau de stress; antécédents; traitement médical; tabagisme; autres réponses libres acceptées par l'API; date du questionnaire |
-| Catégorie particulière | Oui — données concernant la santé, notamment antécédents, traitements et mesures croisées permettant d'inférer l'état de santé |
-| Sources | Saisie par le salarié; données fictives générées par `db/seed.js` pour la démonstration |
-| Opérations | Collecte, enregistrement, conservation, consultation avec le profil, extraction et export |
-| Destinataires prévus | Salarié concerné; coachs ou professionnels autorisés à confirmer; assureur selon la finalité annoncée; personnels techniques strictement habilités |
-| Destinataires techniquement constatés | Tout compte authentifié peut lire les questionnaires d'un autre utilisateur via `/api/users/:id`; les RH et administrateurs peuvent exporter tous les questionnaires; un salarié peut obtenir l'export après élévation de rôle |
-| Transferts hors UE | Aucun transfert réel démontré. Pays d'établissement de l'assureur, hébergement et éventuels prestataires à confirmer avant de conclure |
-| Conservation actuelle | Illimitée en pratique : aucune purge, aucune durée configurée et données conservées après `DELETE /api/me`; `retentionDays` vaut `null` dans un fichier de configuration inutilisé |
-| Délai d'effacement à inscrire | À établir selon la finalité validée, les obligations sectorielles applicables et la durée réellement nécessaire; aucune valeur arbitraire n'est proposée |
-| Mesures observées | Authentification obligatoire pour créer ou consulter; stockage local dans un fichier JSON |
-| Insuffisances documentées | Pas de contrôle de propriété, de rôle ou de tenant à la lecture; export global; aucune séparation logique par entreprise; aucune politique de conservation; pas de chiffrement applicatif démontré |
-| Preuves | `src/routes/data.js:10-27,47-55`; `db/seed.js:52-67`; constats `PRIV-01`, `PRIV-03`, `PRIV-04`, `PRIV-05` |
-| Propriétaire métier à désigner | Responsable du service de bien-être / direction médicale si elle existe, avec DPO et RSSI |
+- **Finalités :** recueillir les réponses nécessaires au service de bien-être et les restituer avec le profil; l'usage exact pour le coaching, la prévention ou l'assurance reste à confirmer.
+- **Personnes et données :** salariés; identifiant, date, poids, taille, sommeil, stress, antécédents, traitement médical, tabagisme et réponses libres acceptées par l'API. Les antécédents et traitements sont des données de santé; les autres mesures peuvent le devenir selon leur croisement et leur contexte.
+- **Destinataires :** salarié concerné; coachs ou professionnels dont l'habilitation reste à définir; assureur annoncé pour RT-05. Le code permet actuellement à tout compte authentifié de consulter les questionnaires d'un tiers et aux RH/administrateurs de tous les exporter.
+- **Transferts et conservation :** aucun transfert externe démontré. Aucune durée ni purge applicative observée; les questionnaires subsistent après `DELETE /api/me`. La politique cible doit être définie selon chaque finalité validée, les éventuelles obligations sectorielles et les besoins d'archivage justifiés.
+- **Protections observées :** authentification préalable, mais pas de contrôle de propriété, de rôle ou d'entreprise. Voir `PRIV-01`, `PRIV-03`, `PRIV-04` et `PRIV-05`.
+- **Références :** `src/routes/data.js:10-27,47-55`, `db/seed.js:52-67`.
 
 ### RT-03 — Messagerie coach–salarié
 
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Permettre des échanges entre un utilisateur et un coach dans le cadre de l'accompagnement WellWork |
-| Personnes concernées | Salariés, coachs et, techniquement, tout compte authentifié |
-| Données traitées | Identifiants de l'expéditeur et du destinataire; contenu libre du message; date et heure |
-| Sensibilité | Le contenu libre peut révéler des informations de santé, professionnelles ou personnelles; cette possibilité doit être couverte par la gouvernance et l'information des personnes |
-| Sources | Message saisi par l'expéditeur |
-| Opérations | Collecte, transmission interne, enregistrement, conservation et consultation |
-| Destinataires prévus | Expéditeur, destinataire et personnels de support exceptionnellement habilités |
-| Destinataires techniquement constatés | Lecture limitée aux messages dont l'utilisateur est expéditeur ou destinataire; l'envoi n'impose toutefois ni rôle coach ni contrôle du destinataire |
-| Transferts hors UE | Aucun mécanisme de messagerie externe démontré; hébergement et accès support à confirmer |
-| Conservation actuelle | Aucune durée ni suppression implémentée; messages conservés dans la base JSON |
-| Délai d'effacement à inscrire | À déterminer selon la durée utile de l'accompagnement et les besoins contentieux documentés |
-| Mesures observées | Authentification; filtre de lecture sur `from` ou `to` |
-| Insuffisances documentées | Pas de validation des rôles ou de l'appartenance à une relation de coaching; pas de mécanisme d'effacement; confidentialité du stockage non démontrée |
-| Preuves | `src/routes/data.js:37-45`; stockage déclaré dans `src/db.js:13` |
-| Propriétaire métier à désigner | Responsable coaching / opérations, avec DPO et RSSI |
+- **Finalités :** permettre les échanges liés à l'accompagnement.
+- **Personnes et données :** salariés et coachs; identifiants de l'expéditeur et du destinataire, contenu libre, date. Le texte peut contenir des informations personnelles ou de santé selon ce que l'utilisateur écrit.
+- **Destinataires :** expéditeur et destinataire; éventuels accès support à confirmer. La lecture est filtrée sur `from`/`to`, mais tout compte authentifié peut envoyer un message sans contrôle d'une relation de coaching.
+- **Transferts et conservation :** aucune messagerie externe démontrée. Aucune durée, purge ou procédure externe documentée. La durée cible doit tenir compte de la période d'accompagnement et d'un éventuel archivage contentieux justifié.
+- **Protections observées :** authentification et filtrage des messages à la lecture; limites d'habilitation non couvertes par un constat dédié.
+- **Références :** `src/routes/data.js:37-45`, `src/db.js:13`.
 
-### RT-04 — Annuaire et consultation des profils
+### RT-04 — Tableau de bord RH annoncé, annuaire et consultation des profils
 
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Permettre aux coachs et aux RH de rechercher des utilisateurs et de consulter les profils nécessaires à leurs missions — finalité déduite du commentaire de code et du README |
-| Personnes concernées | Tous les titulaires d'un compte; salariés des différentes entreprises clientes |
-| Données traitées | Toutes les propriétés des comptes : identité, email, entreprise, date de naissance, rôle, statut, hash de mot de passe; la fiche détaillée ajoute les questionnaires de santé |
-| Sources | RT-01 et RT-02 |
-| Opérations | Recherche, filtrage, consultation, rapprochement avec les questionnaires |
-| Destinataires prévus | RH limités à leur entreprise; coachs limités aux personnes qu'ils accompagnent — périmètres métier à confirmer |
-| Destinataires techniquement constatés | Tout compte authentifié, sans restriction de rôle ni d'entreprise; le filtre est du JavaScript exécuté côté serveur |
-| Transferts hors UE | Aucun démontré; dépend de la localisation des utilisateurs et de l'hébergement, à confirmer |
-| Conservation actuelle | Identique aux comptes et questionnaires sources : aucune durée définie |
-| Délai d'effacement à inscrire | Hérité de RT-01 et RT-02; les vues et caches éventuels restent à recenser |
-| Mesures observées | Authentification avant les deux routes |
-| Insuffisances documentées | Annuaire complet accessible aux salariés; accès horizontal; absence d'isolation tenant; exposition de `passwordHash`; évaluation d'un filtre utilisateur par `new Function` |
-| Preuves | `src/routes/data.js:22-35`; `src/db.js:30-37`; constats `SEC-01`, `PRIV-01`, `PRIV-02`, `PRIV-03`, `PRIV-06` |
-| Propriétaire métier à désigner | Responsable des opérations B2B / relation clients, avec DPO et RSSI |
+- **Finalités :** fournir aux coachs et aux RH un annuaire et les profils utiles à leurs missions. L'énoncé annonce aussi un « tableau de bord RH ».
+- **Correspondance énoncé/code :** dans le code observé, les seules fonctions susceptibles d'alimenter ce tableau de bord sont la liste des utilisateurs et la consultation des profils. Aucune vue dédiée, statistique, agrégation ou indicateur RH n'est implémenté. RT-04 recense donc l'activité annoncée sans lui attribuer de données ni d'usages supplémentaires; toute future fonction de pilotage devra être ajoutée au registre selon son contenu réel.
+- **Personnes et données :** titulaires de comptes; identité, email, entreprise, date de naissance, rôle, statut et empreinte du mot de passe; la fiche détaillée joint les questionnaires.
+- **Destinataires :** destinataires métier annoncés : coachs et RH. Leurs habilitations par entreprise ou portefeuille sont des hypothèses à valider. Accès observé : tout compte authentifié, sans restriction de rôle ni de tenant.
+- **Transferts et conservation :** aucun transfert démontré. La conservation suit celle des données sources RT-01 et RT-02; aucune purge applicative n'est observée.
+- **Protections observées :** authentification seulement. Les accès excessifs et le filtre JavaScript sont documentés dans `SEC-01`, `PRIV-01`, `PRIV-02`, `PRIV-03` et `PRIV-06`.
+- **Références :** `src/routes/data.js:22-35`, `src/db.js:30-37`.
 
-### RT-05 — Export destiné à l'assureur
+### RT-05 — Export annoncé pour l'assureur
 
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Produire, à la demande, un jeu de données destiné à un assureur partenaire. L'objectif précis de l'assureur et la nécessité de chaque donnée ne sont pas documentés |
-| Personnes concernées | Tous les utilisateurs de toutes les entreprises présents en base |
-| Données traitées | Copie complète de chaque compte, y compris `passwordHash`, identité, entreprise, date de naissance, rôle et statut; tous les questionnaires de santé; métadonnées de l'export : auteur, date, volume |
-| Sources | RT-01 et RT-02 |
-| Opérations | Extraction, rapprochement, constitution d'une réponse JSON, remise au demandeur et journalisation de l'export |
-| Destinataires prévus | Assureur partenaire non identifié; personnels WellWork autorisés à déclencher ou contrôler l'export |
-| Destinataires techniquement constatés | Administrateurs et RH selon `requireAdmin`; tout salarié ayant exploité RT-01/`SEC-02`; le code ne contient aucun client réseau envoyant les données à l'assureur |
-| Transferts hors UE | Indéterminés. Aucun transfert externe n'est prouvé par la réponse HTTP. Identité, pays, rôle, contrat et canal de l'assureur à fournir avant de renseigner un éventuel transfert |
-| Conservation actuelle | Données sources sans limite; historique `exports` sans durée; la réponse peut être conservée par le destinataire pour une durée inconnue |
-| Délai d'effacement à inscrire | À fixer séparément pour les données exportées et les traces d'export, en cohérence avec la finalité et le contrat assureur |
-| Mesures observées | Authentification; middleware de rôle acceptant `admin` et `rh`; trace de la date, de l'auteur et du nombre de lignes |
-| Insuffisances documentées | Export global multi-entreprises; données non minimisées; hash inclus; santé incluse; absence de contrôle tenant; destinataire et canal non documentés |
-| Preuves | `src/auth.js:31-38`; `src/routes/data.js:47-55`; constats `SEC-02`, `PRIV-04`, `PRIV-06` |
-| Propriétaire métier à désigner | Responsable partenariats/assurance, avec validation juridique, DPO et RSSI |
+- **Finalités :** constituer un export annoncé comme destiné à un assureur; l'objectif métier précis et la nécessité des données restent inconnus.
+- **Personnes et données :** tous les utilisateurs présents en base. Les **données sources** sont les comptes et questionnaires. La **réponse HTTP** contient leurs propriétés complètes, dont `passwordHash`, et les questionnaires. La collection `exports` ne conserve pas une copie de l'export : elle enregistre seulement `id`, auteur, date et nombre de lignes. Le journal conserve également des métadonnées.
+- **Destinataires :** assureur annoncé mais non identifié; administrateurs et RH peuvent obtenir la réponse. Après `SEC-02`, un salarié peut aussi y accéder. Le code ne prouve aucun envoi effectif à l'assureur.
+- **Transferts et conservation :** pays et canal du destinataire inconnus; aucun transfert hors UE ne peut être conclu. Aucune purge applicative des données sources ou des traces `exports` n'est observée. La conservation éventuelle de la réponse chez le destinataire est inconnue.
+- **Protections observées :** authentification et contrôle de rôle acceptant `admin` et `rh`; limites dans `SEC-02`, `PRIV-04` et `PRIV-06`.
+- **Références :** `src/auth.js:31-38`, `src/routes/data.js:47-55`.
 
 ### RT-06 — Préférences marketing et partage à des tiers
 
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Enregistrer une préférence marketing et une préférence de communication à des tiers. Aucune campagne ou transmission effective n'est implémentée dans le code fourni |
-| Personnes concernées | Utilisateurs qui créent un compte |
-| Données traitées | Identifiant utilisateur; indicateurs `marketingOptIn`, `marketing` et `thirdParty`; horodatage |
-| Sources | Valeurs imposées par le serveur lors de l'inscription, sans champ de choix reçu du client |
-| Opérations | Création et conservation d'un enregistrement de consentement; aucune modification ou révocation prévue |
-| Destinataires prévus | Équipe marketing WellWork; tiers non identifiés — à confirmer |
-| Destinataires techniquement constatés | Base interne; les enregistrements ne sont exposés par aucune route dédiée dans le code fourni |
-| Transferts hors UE | Aucun démontré; dépendrait des futurs outils marketing et tiers, à recenser avant usage |
-| Conservation actuelle | Aucune durée et aucun mécanisme de retrait ou d'historisation des changements |
-| Délai d'effacement à inscrire | À fixer après définition des finalités; la preuve des choix et retraits doit avoir une durée justifiée distincte de l'usage marketing |
-| Mesures observées | Horodatage et rattachement à l'identifiant utilisateur |
-| Insuffisances documentées | Valeurs forcées à `true`; absence de choix, de granularité opérationnelle, de retrait et d'identité des tiers |
-| Preuves | `src/routes/accounts.js:20-32`; `db/seed.js:27-32`; constat `PRIV-07` |
-| Propriétaire métier à désigner | Responsable marketing/partenariats, avec DPO |
+- **Finalités :** enregistrer des indicateurs marketing et de partage à des tiers; aucune campagne ni transmission n'est observable dans le support.
+- **Personnes et données :** utilisateurs inscrits; `marketingOptIn` dans le profil, et enregistrements séparés `consents` contenant identifiant, `marketing`, `thirdParty` et date.
+- **Destinataires :** équipe marketing et tiers éventuels, non identifiés. `marketingOptIn` apparaît dans les réponses de profil; les enregistrements `consents` n'ont pas de route dédiée.
+- **Fonctionnement constaté :** à l'inscription, les trois indicateurs sont imposés à `true`; ils ne prouvent donc pas un choix exprimé. `PATCH /api/me` peut modifier `marketingOptIn`, mais ne synchronise pas la collection `consents`. Il n'existe pas de procédure cohérente de retrait ou d'historisation.
+- **Transferts et conservation :** aucun transfert démontré. Aucune durée ni purge applicative observée; procédures externes non documentées. Les durées cibles devront distinguer usage des préférences et conservation justifiée d'une preuve de choix ou de retrait.
+- **Protections et preuves :** horodatage des `consents`, mais cohérence non garantie. Voir `PRIV-07`; `src/routes/accounts.js:20-32,48-58`, `db/seed.js:27-32`.
 
 ### RT-07 — Journalisation technique et support
 
-| Rubrique | Contenu constaté |
-|---|---|
-| Finalités | Diagnostic technique et support; traçabilité des tentatives d'inscription et de connexion, des modifications de profil et des exports |
-| Personnes concernées | Utilisateurs, administrateurs et RH déclenchant les événements journalisés |
-| Données traitées | Date et heure; niveau et type d'événement; email; mot de passe en clair; entreprise; identifiant utilisateur; noms des champs modifiés; auteur et volume des exports |
-| Sources | Requêtes d'inscription et de connexion; événements applicatifs |
-| Opérations | Collecte, écriture dans un fichier, sortie standard éventuelle et consultation par les opérateurs |
-| Destinataires prévus | Équipe technique et support strictement habilitée; prestataire d'hébergement ou de centralisation des logs s'il existe, à déclarer |
-| Destinataires techniquement constatés | Toute personne ou tout processus ayant accès au fichier `logs/app.log` ou à stdout; aucune gestion d'habilitation applicative n'est démontrée |
-| Transferts hors UE | Aucun service de logs distant démontré; environnement d'hébergement et outils de supervision à confirmer |
-| Conservation actuelle | Mode ajout continu (`flags: 'a'`), sans rotation, purge ni délai |
-| Délai d'effacement à inscrire | À déterminer selon les besoins de sécurité/support et les risques; prévoir rotation, purge et éventuel archivage sécurisé |
-| Mesures observées | Chemin configurable par `LOG_FILE`; possibilité de désactiver stdout avec `LOG_STDOUT=0` |
-| Insuffisances documentées | Mots de passe journalisés en clair; conservation indéfinie; contrôle d'accès et chiffrement non démontrés |
-| Preuves | `src/logger.js:6-14`; `src/routes/accounts.js:15,39`; `src/routes/data.js:53-54`; constat `SEC-04` |
-| Propriétaire métier à désigner | Responsable exploitation / RSSI |
+- **Finalités :** diagnostic, support et traçabilité des inscriptions, connexions, modifications de profil et exports.
+- **Personnes et données :** utilisateurs et opérateurs, mais aussi personnes tentant une inscription ou une connexion sans disposer d'un compte; date, événement, email, entreprise, mot de passe saisi en clair, identifiant, champs modifiés, auteur et volume d'export.
+- **Destinataires :** personnes ou processus ayant accès au fichier de log ou à stdout; équipes techniques/support et prestataires éventuels à identifier.
+- **Transferts et conservation :** aucun service externe de logs démontré. Écriture en ajout continu, sans durée, rotation ou purge applicative observée; procédures externes non documentées.
+- **Protections observées :** stdout peut être désactivé. Le stockage en fichier et son chemin configurable ne constituent pas à eux seuls des protections; habilitations et chiffrement ne sont pas documentés. Voir `SEC-04`.
+- **Références :** `src/logger.js:6-14`, `src/routes/accounts.js:15,39`, `src/routes/data.js:53-54`.
 
-## 5. Synthèse des destinataires et flux
+### RT-08 — Suivi des séances sportives
 
-| Catégorie de destinataire | Traitements concernés | Situation constatée | Validation requise |
-|---|---|---|---|
-| Utilisateur concerné | RT-01, RT-02, RT-03 | Profil, questionnaire soumis et messages | Champs réellement nécessaires et droits d'accès |
-| Salariés authentifiés | RT-04, indirectement RT-02 et RT-05 | Accès actuel excessif à l'annuaire, aux profils et, après élévation, à l'export | Supprimer les accès non prévus |
-| Coachs | RT-03, RT-04; RT-02 à confirmer | Messagerie et accès technique au même titre que tout compte | Définir portefeuille de personnes et accès santé |
-| RH des entreprises clientes | RT-04, RT-05 | Annuaire et export global multi-tenant | Limiter à l'entreprise et aux données justifiées |
-| Administrateurs WellWork | RT-01 à RT-07 | Accès potentiellement large | Habilitations, séparation des tâches et journalisation |
-| Équipe technique/support | RT-07 et accès au stockage | Accès possible aux fichiers de base et de logs | Liste nominative, confidentialité et moindre privilège |
-| Assureur partenaire | RT-05 | Destinataire annoncé, mais aucun transfert réseau démontré | Identité, rôle, finalité, contrat, pays, canal et durée |
-| Tiers marketing | RT-06 | Mentionnés seulement par un indicateur | Identifier ou supprimer la finalité non utilisée |
-| Hébergeur et prestataires | Tous | Non documentés | Inventaire contractuel, localisation, accès et sous-traitants ultérieurs |
+- **État :** activité décrite dans l'énoncé, non observable dans le support technique; une collection vide `sessionsSport` existe, sans route ni donnée associée.
+- **Personnes concernées :** salariés, selon l'énoncé.
+- **À confirmer :** finalité précise, données, destinataires, transferts, durées, stockage et protections. Aucun de ces éléments ne peut être déduit de manière fiable du code fourni.
+- **Références :** énoncé, page 1; `src/db.js:13`.
 
-## 6. Transferts internationaux
+## Notes communes et validations nécessaires
 
-Aucun transfert vers un pays tiers ou une organisation internationale n'est démontré dans le code. Cette conclusion signifie seulement « absence de preuve dans le support », pas « absence certaine de transfert ». Les éléments suivants doivent être obtenus :
+L'hébergement, les sauvegardes, les prestataires, leurs pays, les accès de support et les contrats ne sont pas documentés. L'absence de flux sortant dans le code ne prouve donc pas l'absence de transfert international. Il faut identifier ces acteurs, puis documenter pays, garanties et sous-traitants ultérieurs.
 
-1. pays d'hébergement de l'application, de la base, des sauvegardes et des logs ;
-2. identité et pays des prestataires techniques ;
-3. identité, pays et canal réel de l'assureur ;
-4. outils de messagerie, marketing, supervision et support effectivement utilisés ;
-5. accès à distance depuis des pays hors Espace économique européen ;
-6. mécanisme juridique et garanties applicables pour chaque transfert identifié.
+Pour les activités observables dans le code, la preuve technique est la même : **aucune durée ni purge applicative observée; procédures externes non documentées**. La politique cible devra distinguer base active, éventuel archivage intermédiaire et suppression. Les critères à examiner sont la finalité, la fin de la relation, les obligations sectorielles applicables, les délais de recours et la nécessité de chaque donnée. Aucune durée légale n'est déduite ou inventée ici.
 
-La configuration SMTP neutralisée n'est importée par aucun fichier et ne prouve donc ni l'utilisation du prestataire indiqué dans l'original ni un transfert.
+Restent à valider : identité et coordonnées des acteurs et du DPO; qualification juridique en A.2; finalités métier exactes; habilitations prévues; hébergement et transferts; sous-traitants; durées et modalités d'effacement; mesures organisationnelles; réalité et modalités des activités assureur, marketing et sport.
 
-## 7. Durées de conservation
+## Références officielles
 
-L'état actuel est une absence générale de durée et de purge. Il serait trompeur d'inventer immédiatement des durées chiffrées : la CNIL indique qu'en l'absence de règle spécifique, la durée doit être déterminée selon la finalité, les obligations légales et les éventuels besoins contentieux.
-
-| Catégorie | Durée actuelle observée | Décision attendue |
-|---|---|---|
-| Comptes actifs | Indéfinie | Durée de la relation de service et règles d'inactivité |
-| Comptes « supprimés » | Indéfinie; simple marqueur | Délai d'effacement/anonymisation et éventuel archivage séparé |
-| Sessions | Indéfinie | Durée de validité courte, rotation et révocation |
-| Questionnaires de santé | Indéfinie | Durée strictement nécessaire par finalité et éventuelle obligation sectorielle |
-| Messages | Indéfinie | Durée de l'accompagnement et archivage contentieux justifié |
-| Préférences/consentements | Indéfinie | Durée d'usage et durée distincte de preuve des choix/retraits |
-| Exports et historique d'export | Indéfinie | Durée côté WellWork et côté destinataire, à contractualiser |
-| Journaux | Indéfinie, ajout continu | Rotation, durée sécurité/support et purge automatisée |
-
-## 8. Mesures de sécurité transversales observées
-
-Mesures présentes, sans préjuger de leur conformité :
-
-- authentification Bearer sur les routes non publiques ;
-- transformation SHA-256 des mots de passe ;
-- middleware de rôle pour l'export ;
-- filtre expéditeur/destinataire pour la lecture des messages ;
-- trace de certaines actions ;
-- chemins de base et de logs configurables par variables d'environnement.
-
-L'audit démontre toutefois que ces mesures sont insuffisantes : contrôle d'accès horizontal et tenant absent, élévation de privilèges, session sans expiration, hash non adapté aux mots de passe, données sensibles et hash exposés, mot de passe journalisé, export non minimisé et absence de politique d'effacement. Le détail reste dans `docs/audit/02-matrice-des-constats.md`.
-
-## 9. Informations à obtenir pour valider le registre
-
-- raison sociale, coordonnées, représentant et DPO de WellWork ;
-- contrats avec chaque entreprise cliente et répartition des décisions sur les finalités et moyens ;
-- identité, rôle, pays, contrat et finalité de l'assureur ;
-- liste des hébergeurs et autres sous-traitants avec leurs localisations ;
-- liste réelle des équipes et rôles ayant accès à chaque catégorie de données ;
-- finalités précises du questionnaire, du coaching, de l'export et du marketing ;
-- durées validées et règles d'archivage/effacement pour chaque catégorie ;
-- existence de sauvegardes, réplications, outils de logs et canaux externes non visibles dans le code ;
-- mesures organisationnelles : habilitations, confidentialité, revue des droits, gestion des incidents et exercice des droits ;
-- décision sur la fonctionnalité de séances sportives avant toute activation.
-
-## 10. Sources juridiques et méthodologiques
-
-- [RGPD, article 30 — registre des activités de traitement (CNIL)](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre4#Article30)
+- [RGPD, article 30 — registre des activités de traitement](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre4#Article30)
 - [CNIL — Le registre des activités de traitement](https://www.cnil.fr/fr/RGPD-le-registre-des-activites-de-traitement)
 - [CNIL — Les durées de conservation des données](https://www.cnil.fr/fr/passer-laction/les-durees-de-conservation-des-donnees)
 - [CNIL — Qu'est-ce qu'une donnée de santé ?](https://www.cnil.fr/fr/quest-ce-ce-quune-donnee-de-sante)
-
-Ces sources justifient la structure du registre et la qualification des données de santé. Elles ne remplacent pas l'analyse des bases légales et des rôles demandée en partie A.2.
