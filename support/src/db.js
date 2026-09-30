@@ -27,14 +27,13 @@ function hashPassword(pwd) {
   return crypto.createHash('sha256').update(pwd).digest('hex');
 }
 
-// Recherche par "requete" simple facon SQL : les filtres sont assembles en chaine.
-// where est une expression evaluee sur chaque ligne.
-function query(collection, whereExpr) {
+// Recherche interne avec un predicat construit par le serveur.
+// Les entrees HTTP ne doivent jamais etre interpretees comme du code.
+function query(collection, predicate) {
   const rows = data[collection] || [];
-  if (!whereExpr) return rows;
-  // eslint-disable-next-line no-new-func
-  const fn = new Function('row', `try { return (${whereExpr}); } catch (e) { return false; }`);
-  return rows.filter((row) => fn(row));
+  if (!predicate) return rows;
+  if (typeof predicate !== 'function') throw new TypeError('query predicate must be a function');
+  return rows.filter(predicate);
 }
 
 function insert(collection, row) {
