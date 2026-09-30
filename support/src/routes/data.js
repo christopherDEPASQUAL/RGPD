@@ -4,9 +4,28 @@ const express = require('express');
 const db = require('../db');
 const { log } = require('../logger');
 const { requireAuth, requireAdmin } = require('../auth');
-const { userWithoutSecrets } = require('../presenters');
+const { userWithoutSecrets, directoryUser } = require('../presenters');
 
 const router = express.Router();
+
+function hasVerifiedTenant(user) {
+  return Boolean(user?.tenantId && user?.tenantVerifiedAt);
+}
+
+function sharesVerifiedTenant(actor, target) {
+  return hasVerifiedTenant(actor) && hasVerifiedTenant(target) && actor.tenantId === target.tenantId;
+}
+
+function hasVerifiedCoachAssignment(coach, target) {
+  if (coach?.role !== 'coach' || !hasVerifiedTenant(target)) return false;
+  return db.query('coachAssignments', (assignment) => (
+    assignment.coachUserId === coach.id
+    && assignment.employeeUserId === target.id
+    && assignment.tenantId === target.tenantId
+    && Boolean(assignment.verifiedAt)
+    && !assignment.revokedAt
+  )).length > 0;
+}
 
 // Questionnaire de sante rempli par le salarie.
 router.post('/questionnaires', requireAuth, (req, res) => {
@@ -25,19 +44,38 @@ router.get('/users/:id', requireAuth, (req, res) => {
   const requestedId = Number(req.params.id);
   const u = db.query('users', (row) => row.id === requestedId)[0];
   if (!u) return res.status(404).json({ error: 'not found' });
-  const questionnaires = db.query('questionnaires', (row) => row.userId === requestedId);
-  res.json({ ...userWithoutSecrets(u), questionnaires });
+  const isSelf = req.user.id === u.id;
+  const rhAccess = req.user.role === 'rh' && sharesVerifiedTenant(req.user, u);
+  const coachAccess = hasVerifiedCoachAssignment(req.user, u);
+  if (!isSelf && !rhAccess && !coachAccess) return res.status(403).json({ error: 'forbidden' });
+
+  const response = userWithoutSecrets(u);
+  if (isSelf || coachAccess) {
+    response.questionnaires = db.query('questionnaires', (row) => row.userId === requestedId);
+  }
+  return res.json(response);
 });
 
 // Recherche annuaire pour les coachs et les RH.
 router.get('/users', requireAuth, (req, res) => {
-  const allowedFilters = new Set(['company', 'role']);
+  const allowedFilters = new Set(['role']);
   const requestedFilters = Object.keys(req.query);
   if (requestedFilters.some((key) => !allowedFilters.has(key))) {
     return res.status(400).json({ error: 'unsupported filter' });
   }
-  const rows = db.query('users', (row) => requestedFilters.every((key) => row[key] === req.query[key]));
-  res.json(rows.map(userWithoutSecrets));
+  let rows;
+  if (req.user.role === 'rh' && hasVerifiedTenant(req.user)) {
+    rows = db.query('users', (row) => !row.deleted && sharesVerifiedTenant(req.user, row));
+  } else if (req.user.role === 'coach') {
+    const assignedIds = new Set(db.query('coachAssignments', (assignment) => (
+      assignment.coachUserId === req.user.id && Boolean(assignment.verifiedAt) && !assignment.revokedAt
+    )).map((assignment) => assignment.employeeUserId));
+    rows = db.query('users', (row) => !row.deleted && assignedIds.has(row.id) && hasVerifiedCoachAssignment(req.user, row));
+  } else {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  const filtered = rows.filter((row) => requestedFilters.every((key) => row[key] === req.query[key]));
+  return res.json(filtered.map(directoryUser));
 });
 
 // Messagerie coach / salarie.

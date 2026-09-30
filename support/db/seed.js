@@ -25,7 +25,16 @@ const sessions = [];
 
 function addUser(u) {
   const id = users.length + 1;
-  const user = { id, role: 'employee', marketingOptIn: true, createdAt: '2024-02-10T09:00:00.000Z', deleted: false, ...u };
+  const user = {
+    id,
+    role: 'employee',
+    marketingOptIn: true,
+    createdAt: '2024-02-10T09:00:00.000Z',
+    deleted: false,
+    tenantId: null,
+    tenantVerifiedAt: null,
+    ...u,
+  };
   users.push(user);
   consents.push({ id, userId: id, marketing: true, thirdParty: true, at: user.createdAt });
   return user;
@@ -33,7 +42,7 @@ function addUser(u) {
 
 // Comptes de reference
 addUser({ email: 'admin@wellwork.example', passwordHash: hashPassword('Admin2024!'), firstName: 'Admin', lastName: 'System', company: 'WellWork', role: 'admin', birthDate: '1985-05-20' });
-addUser({ email: 'rh@acme.example', passwordHash: hashPassword('AcmeRh2024'), firstName: 'Rachel', lastName: 'Hays', company: 'ACME', role: 'rh', birthDate: '1979-11-02' });
+addUser({ email: 'rh@acme.example', passwordHash: hashPassword('AcmeRh2024'), firstName: 'Rachel', lastName: 'Hays', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2024-02-10T09:00:00.000Z', role: 'rh', birthDate: '1979-11-02' });
 addUser({ email: 'coach@wellwork.example', passwordHash: hashPassword('coach123'), firstName: 'Coach', lastName: 'Vaillant', company: 'WellWork', role: 'coach', birthDate: '1990-03-15' });
 
 // 60 salaries
@@ -45,6 +54,8 @@ for (let i = 0; i < 60; i++) {
     email: `${fn}.${ln}${i}@${company}.example`.toLowerCase(),
     passwordHash: hashPassword(pick(['Password1', 'Bienvenue2024', 'azerty123', 'Sport2024!', 'Soleil34'])),
     firstName: fn, lastName: ln, company,
+    tenantId: `tenant-${company.toLowerCase()}`,
+    tenantVerifiedAt: '2024-02-10T09:00:00.000Z',
     birthDate: `19${60 + Math.floor(rnd() * 40)}-${String(1 + Math.floor(rnd() * 12)).padStart(2, '0')}-${String(1 + Math.floor(rnd() * 28)).padStart(2, '0')}`,
     deleted: rnd() < 0.1,
   });
@@ -67,7 +78,7 @@ for (let i = 0; i < 60; i++) {
   }
 }
 
-const data = { users, sessions, questionnaires, messages: [], sessionsSport: [], exports: [], consents };
+const data = { users, sessions, questionnaires, messages: [], sessionsSport: [], exports: [], consents, coachAssignments: [] };
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 console.log(`Base ecrite : ${users.length} utilisateurs, ${questionnaires.length} questionnaires -> ${DB_FILE}`);

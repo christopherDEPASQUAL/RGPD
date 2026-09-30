@@ -10,11 +10,13 @@ const crypto = require('node:crypto');
 
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, '..', 'db', 'wellwork.json');
 
-let data = { users: [], sessions: [], questionnaires: [], messages: [], sessionsSport: [], exports: [], consents: [] };
+const COLLECTIONS = ['users', 'sessions', 'questionnaires', 'messages', 'sessionsSport', 'exports', 'consents', 'coachAssignments'];
+let data = Object.fromEntries(COLLECTIONS.map((collection) => [collection, []]));
 
 function load() {
   if (fs.existsSync(DB_FILE)) {
-    data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    const loaded = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    data = Object.fromEntries(COLLECTIONS.map((collection) => [collection, Array.isArray(loaded[collection]) ? loaded[collection] : []]));
   }
 }
 function save() {

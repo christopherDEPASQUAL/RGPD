@@ -21,15 +21,23 @@ function writeDatabase() {
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
   fs.writeFileSync(process.env.DB_FILE, JSON.stringify({
     users: [
-      { id: 1, email: 'employee@acme.example', company: 'ACME', role: 'employee', passwordHash: 'unused', deleted: false },
-      { id: 2, email: 'other@globex.example', company: 'Globex', role: 'employee', passwordHash: 'unused', deleted: false },
+      { id: 1, email: 'employee@acme.example', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', passwordHash: 'unused', deleted: false },
+      { id: 2, email: 'other@globex.example', company: 'Globex', tenantId: 'tenant-globex', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', passwordHash: 'unused', deleted: false },
       { id: 3, email: 'admin@wellwork.example', company: 'WellWork', role: 'admin', passwordHash: 'unused', deleted: false },
+      { id: 4, email: 'rh@acme.example', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'rh', passwordHash: 'unused', deleted: false },
+      { id: 5, email: 'coach@wellwork.example', company: 'WellWork', role: 'coach', passwordHash: 'unused', deleted: false },
+      { id: 6, email: 'unverified@example.test', company: 'ACME', tenantId: null, tenantVerifiedAt: null, role: 'employee', passwordHash: 'unused', deleted: false },
     ],
     sessions: [
       { token: 'employee-token', userId: 1, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
       { token: 'admin-token', userId: 3, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
+      { token: 'rh-token', userId: 4, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
+      { token: 'coach-token', userId: 5, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
+      { token: 'unverified-token', userId: 6, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
     ],
-    questionnaires: [], messages: [], sessionsSport: [], exports: [], consents: [],
+    questionnaires: [{ id: 1, userId: 1, answers: { stress: 5 }, at: new Date().toISOString() }],
+    messages: [], sessionsSport: [], exports: [], consents: [],
+    coachAssignments: [{ id: 1, coachUserId: 5, employeeUserId: 1, tenantId: 'tenant-acme', verifiedAt: '2026-01-01T00:00:00.000Z', revokedAt: null }],
   }));
 }
 
@@ -52,12 +60,12 @@ async function waitForLog(pattern) {
 
 test('SEC-01 refuse les expressions executables et accepte les filtres declares', async () => {
   await withServer(async (base) => {
-    const headers = { authorization: 'Bearer employee-token' };
+    const headers = { authorization: 'Bearer rh-token' };
     const attack = encodeURIComponent("(row.auditProof='EXECUTED',row.id===1)");
     const rejected = await fetch(`${base}/api/users?filter=${attack}`, { headers });
     assert.equal(rejected.status, 400);
 
-    const safe = await fetch(`${base}/api/users?company=ACME`, { headers });
+    const safe = await fetch(`${base}/api/users?role=employee`, { headers });
     assert.equal(safe.status, 200);
     const rows = await safe.json();
     assert.equal(rows.length, 1);
@@ -185,8 +193,8 @@ test('PRIV-06 exclut les secrets derives de toutes les reponses utilisateur', as
     const endpoints = [
       registered,
       await (await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${registered.token}` } })).json(),
-      await (await fetch(`${base}/api/users`, { headers: { authorization: 'Bearer admin-token' } })).json(),
-      await (await fetch(`${base}/api/users/1`, { headers: { authorization: 'Bearer admin-token' } })).json(),
+      await (await fetch(`${base}/api/users`, { headers: { authorization: 'Bearer rh-token' } })).json(),
+      await (await fetch(`${base}/api/users/1`, { headers: { authorization: 'Bearer coach-token' } })).json(),
       await (await fetch(`${base}/api/exports/insurer`, { headers: { authorization: 'Bearer admin-token' } })).json(),
     ];
     for (const payload of endpoints) {
@@ -194,6 +202,52 @@ test('PRIV-06 exclut les secrets derives de toutes les reponses utilisateur', as
       assert.equal(JSON.stringify(payload).includes('passwordMigratedAt'), false);
     }
     assert.equal(db.raw().users.some((user) => typeof user.passwordHash === 'string'), true);
+  });
+});
+
+test('PRIV-01/02/03 applique un refus par defaut et des habilitations verifiees', async () => {
+  await withServer(async (base) => {
+    const get = (pathName, token) => fetch(`${base}${pathName}`, { headers: { authorization: `Bearer ${token}` } });
+
+    assert.equal((await get('/api/users/2', 'employee-token')).status, 403);
+    assert.equal((await get('/api/users', 'employee-token')).status, 403);
+
+    const rhProfile = await get('/api/users/1', 'rh-token');
+    assert.equal(rhProfile.status, 200);
+    assert.equal(Object.hasOwn(await rhProfile.json(), 'questionnaires'), false);
+    assert.equal((await get('/api/users/2', 'rh-token')).status, 403);
+
+    const coachProfile = await get('/api/users/1', 'coach-token');
+    assert.equal(coachProfile.status, 200);
+    assert.equal((await coachProfile.json()).questionnaires.length, 1);
+    assert.equal((await get('/api/users/2', 'coach-token')).status, 403);
+
+    assert.equal((await get('/api/users/1', 'unverified-token')).status, 403);
+    assert.equal((await get('/api/users', 'unverified-token')).status, 403);
+
+    db.update('users', (user) => user.id === 4, { tenantId: null, tenantVerifiedAt: null });
+    assert.equal((await get('/api/users', 'rh-token')).status, 403);
+  });
+});
+
+test('PRIV-03 ignore une entreprise declaree ou modifiee pour autoriser des tiers', async () => {
+  await withServer(async (base) => {
+    const registration = await fetch(`${base}/api/register`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'fake-acme@example.test', password: 'Password!', company: 'ACME' }),
+    });
+    const { token } = await registration.json();
+    assert.equal(registration.status, 201);
+    const created = db.raw().users.find((user) => user.email === 'fake-acme@example.test');
+    assert.equal(created.tenantId, null);
+    assert.equal((await fetch(`${base}/api/users/1`, { headers: { authorization: `Bearer ${token}` } })).status, 403);
+
+    const changed = await fetch(`${base}/api/me`, {
+      method: 'PATCH', headers: { authorization: 'Bearer employee-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ company: 'Globex' }),
+    });
+    assert.equal(changed.status, 400);
+    assert.equal(db.raw().users.find((user) => user.id === 1).tenantId, 'tenant-acme');
   });
 });
 

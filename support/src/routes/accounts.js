@@ -23,6 +23,8 @@ router.post('/register', (req, res) => {
     email,
     passwordHash: db.hashPassword(password),
     firstName, lastName, company,
+    tenantId: null,
+    tenantVerifiedAt: null,
     birthDate,
     role: 'employee',
     marketingOptIn: true,
