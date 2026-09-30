@@ -1,2 +1,22 @@
+# Dependencies
 node_modules/
+
+# Local environment (the application does not load these files automatically)
+.env
+.env.*
+!.env.example
+
+# Runtime data and logs
+db/wellwork.json
 logs/
+*.log
+
+# Test and coverage output
+coverage/
+.nyc_output/
+
+# Local audit and temporary artifacts
+.audit/
+audit-artifacts/
+tmp/
+temp/
