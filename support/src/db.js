@@ -71,9 +71,17 @@ function update(collection, predicate, patch) {
   save();
   return n;
 }
+function remove(collection, predicate) {
+  const rows = data[collection] || [];
+  const retained = rows.filter((row) => !predicate(row));
+  const removed = rows.length - retained.length;
+  data[collection] = retained;
+  save();
+  return removed;
+}
 function nextId(collection) {
   const rows = data[collection] || [];
   return rows.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1;
 }
 
-module.exports = { load, save, query, insert, update, nextId, hashPassword, verifyPassword, raw: () => data, DB_FILE };
+module.exports = { load, save, query, insert, update, remove, nextId, hashPassword, verifyPassword, raw: () => data, DB_FILE };

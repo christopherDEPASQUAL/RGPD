@@ -3,7 +3,7 @@
 const express = require('express');
 const db = require('../db');
 const { log } = require('../logger');
-const { issueToken, requireAuth } = require('../auth');
+const { issueToken, requireAuth, revokeUserSessions } = require('../auth');
 const { userWithoutSecrets } = require('../presenters');
 
 const router = express.Router();
@@ -41,7 +41,7 @@ router.post('/login', (req, res) => {
   const { email, password } = req.body || {};
   log('info', 'login_attempt', { email });
   const user = db.query('users', (row) => row.email === email)[0];
-  const verification = user ? db.verifyPassword(password, user.passwordHash) : { valid: false };
+  const verification = user && !user.deleted ? db.verifyPassword(password, user.passwordHash) : { valid: false };
   if (!verification.valid) {
     return res.status(401).json({ error: 'invalid credentials' });
   }
@@ -74,8 +74,18 @@ router.patch('/me', requireAuth, (req, res) => {
 
 // Suppression du compte demandee par l'utilisateur.
 router.delete('/me', requireAuth, (req, res) => {
-  db.update('users', (r) => r.id === req.user.id, { deleted: true, deletedAt: new Date().toISOString() });
-  res.json({ status: 'account marked as deleted' });
+  const userId = req.user.id;
+  revokeUserSessions(userId);
+  db.remove('sessions', (row) => row.userId === userId);
+  db.remove('questionnaires', (row) => row.userId === userId);
+  db.remove('consents', (row) => row.userId === userId);
+  db.remove('messages', (row) => row.from === userId || row.to === userId);
+  db.remove('sessionsSport', (row) => row.userId === userId);
+  db.remove('coachAssignments', (row) => row.coachUserId === userId || row.employeeUserId === userId);
+  db.remove('exports', (row) => row.by === userId);
+  db.remove('users', (row) => row.id === userId);
+  log('info', 'account_deleted', { userId });
+  return res.json({ status: 'account deleted' });
 });
 
 module.exports = router;

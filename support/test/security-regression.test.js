@@ -268,6 +268,39 @@ test('PRIV-04 suspend tout export assureur sans produire de donnees', async () =
   });
 });
 
+test('PRIV-05 supprime les donnees associees et interdit tout nouvel acces', async () => {
+  await withServer(async (base) => {
+    const password = 'DeleteMe!';
+    db.update('users', (user) => user.id === 1, { passwordHash: db.hashPassword(password) });
+    db.insert('consents', { id: 1, userId: 1, marketing: false, thirdParty: false, at: new Date().toISOString() });
+    db.insert('messages', { id: 1, from: 1, to: 2, body: 'test', at: new Date().toISOString() });
+    db.insert('sessionsSport', { id: 1, userId: 1, at: new Date().toISOString() });
+    db.insert('exports', { id: 1, by: 1, at: new Date().toISOString(), count: 0 });
+
+    const deletion = await fetch(`${base}/api/me`, {
+      method: 'DELETE', headers: { authorization: 'Bearer employee-token' },
+    });
+    assert.equal(deletion.status, 200);
+    assert.equal((await deletion.json()).status, 'account deleted');
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer employee-token' } })).status, 401);
+
+    const relogin = await fetch(`${base}/api/login`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'employee@acme.example', password }),
+    });
+    assert.equal(relogin.status, 401);
+
+    assert.equal(db.raw().users.some((row) => row.id === 1), false);
+    assert.equal(db.raw().users.some((row) => row.id === 2), true);
+    for (const collection of ['sessions', 'questionnaires', 'consents', 'sessionsSport']) {
+      assert.equal(db.raw()[collection].some((row) => row.userId === 1), false);
+    }
+    assert.equal(db.raw().messages.some((row) => row.from === 1 || row.to === 1), false);
+    assert.equal(db.raw().coachAssignments.some((row) => row.coachUserId === 1 || row.employeeUserId === 1), false);
+    assert.equal(db.raw().exports.some((row) => row.by === 1), false);
+  });
+});
+
 test.after(() => {
   for (const file of [process.env.DB_FILE, process.env.LOG_FILE]) {
     try { fs.unlinkSync(file); } catch { /* fichier absent ou encore ferme par Node */ }
