@@ -49,6 +49,28 @@ test('SEC-01 refuse les expressions executables et accepte les filtres declares'
   });
 });
 
+test('SEC-02 refuse la modification des attributs proteges du compte', async () => {
+  await withServer(async (base) => {
+    const headers = { authorization: 'Bearer employee-token', 'content-type': 'application/json' };
+    const escalation = await fetch(`${base}/api/me`, {
+      method: 'PATCH', headers, body: JSON.stringify({ role: 'admin', company: 'Globex' }),
+    });
+    assert.equal(escalation.status, 400);
+
+    const profileUpdate = await fetch(`${base}/api/me`, {
+      method: 'PATCH', headers, body: JSON.stringify({ firstName: 'Alice' }),
+    });
+    assert.equal(profileUpdate.status, 200);
+    const profile = await profileUpdate.json();
+    assert.equal(profile.firstName, 'Alice');
+    assert.equal(profile.role, 'employee');
+    assert.equal(profile.company, 'ACME');
+
+    const exportAttempt = await fetch(`${base}/api/exports/insurer`, { headers });
+    assert.equal(exportAttempt.status, 403);
+  });
+});
+
 test.after(() => {
   for (const file of [process.env.DB_FILE, process.env.LOG_FILE]) {
     try { fs.unlinkSync(file); } catch { /* fichier absent ou encore ferme par Node */ }

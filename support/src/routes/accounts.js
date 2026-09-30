@@ -48,10 +48,14 @@ router.post('/login', (req, res) => {
 // Profil courant.
 router.get('/me', requireAuth, (req, res) => res.json(req.user));
 
-// Mise a jour du profil. On applique les champs envoyes par le client.
+// Mise a jour des seuls champs de profil en libre-service.
 router.patch('/me', requireAuth, (req, res) => {
-  const patch = { ...req.body };
-  delete patch.id;
+  const allowedFields = new Set(['firstName', 'lastName', 'birthDate']);
+  const requestedFields = Object.keys(req.body || {});
+  if (!requestedFields.length || requestedFields.some((field) => !allowedFields.has(field))) {
+    return res.status(400).json({ error: 'unsupported profile field' });
+  }
+  const patch = Object.fromEntries(requestedFields.map((field) => [field, req.body[field]]));
   db.update('users', (r) => r.id === req.user.id, patch);
   const fresh = db.query('users', (row) => row.id === req.user.id)[0];
   log('info', 'profile_updated', { userId: req.user.id, fields: Object.keys(patch) });
