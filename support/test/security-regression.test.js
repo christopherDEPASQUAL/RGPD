@@ -14,6 +14,7 @@ process.env.LOG_STDOUT = '0';
 const { createApp } = require('../src/app');
 const db = require('../src/db');
 const { issueToken } = require('../src/auth');
+const { log } = require('../src/logger');
 
 function writeDatabase() {
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
@@ -33,6 +34,15 @@ async function withServer(fn) {
   const server = app.listen(0);
   const base = `http://127.0.0.1:${server.address().port}`;
   try { await fn(base); } finally { await new Promise((resolve) => server.close(resolve)); }
+}
+
+async function waitForLog(pattern) {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const contents = fs.existsSync(process.env.LOG_FILE) ? fs.readFileSync(process.env.LOG_FILE, 'utf8') : '';
+    if (contents.includes(pattern)) return contents;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error(`log event not written: ${pattern}`);
 }
 
 test('SEC-01 refuse les expressions executables et accepte les filtres declares', async () => {
@@ -100,6 +110,24 @@ test('SEC-03 impose des sessions aleatoires, expirables et revocables', async ()
 
     const oldSeedToken = Buffer.from('1.1.1709800000000').toString('base64');
     assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${oldSeedToken}` } })).status, 401);
+  });
+});
+
+test('SEC-04 exclut les secrets des journaux', async () => {
+  await withServer(async (base) => {
+    const password = 'AUDIT_PASSWORD_SENTINEL';
+    const email = 'sec04@acme.example';
+    const response = await fetch(`${base}/api/register`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password, company: 'ACME' }),
+    });
+    assert.equal(response.status, 201);
+
+    log('info', 'central_redaction_test', { password, nested: { token: password } });
+    const contents = await waitForLog('central_redaction_test');
+    assert.equal(contents.includes(password), false);
+    assert.match(contents, /"password":"\[REDACTED\]"/);
+    assert.match(contents, /"token":"\[REDACTED\]"/);
   });
 });
 
