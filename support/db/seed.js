@@ -33,7 +33,7 @@ function addUser(u) {
 }
 
 // Comptes de reference
-const admin = addUser({ email: 'admin@wellwork.example', passwordHash: sha('Admin2024!'), firstName: 'Admin', lastName: 'System', company: 'WellWork', role: 'admin', birthDate: '1985-05-20' });
+addUser({ email: 'admin@wellwork.example', passwordHash: sha('Admin2024!'), firstName: 'Admin', lastName: 'System', company: 'WellWork', role: 'admin', birthDate: '1985-05-20' });
 addUser({ email: 'rh@acme.example', passwordHash: sha('AcmeRh2024'), firstName: 'Rachel', lastName: 'Hays', company: 'ACME', role: 'rh', birthDate: '1979-11-02' });
 addUser({ email: 'coach@wellwork.example', passwordHash: sha('coach123'), firstName: 'Coach', lastName: 'Vaillant', company: 'WellWork', role: 'coach', birthDate: '1990-03-15' });
 
@@ -67,9 +67,6 @@ for (let i = 0; i < 60; i++) {
     });
   }
 }
-
-// Une session administrateur active laissee en base
-sessions.push({ token: Buffer.from(`${admin.id}.1.1709800000000`).toString('base64'), userId: admin.id, createdAt: '2024-03-01T08:00:00.000Z' });
 
 const data = { users, sessions, questionnaires, messages: [], sessionsSport: [], exports: [], consents };
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });

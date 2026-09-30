@@ -12,6 +12,8 @@ process.env.LOG_FILE = path.join(os.tmpdir(), `wellwork-security-${testId}.log`)
 process.env.LOG_STDOUT = '0';
 
 const { createApp } = require('../src/app');
+const db = require('../src/db');
+const { issueToken } = require('../src/auth');
 
 function writeDatabase() {
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
@@ -68,6 +70,36 @@ test('SEC-02 refuse la modification des attributs proteges du compte', async () 
 
     const exportAttempt = await fetch(`${base}/api/exports/insurer`, { headers });
     assert.equal(exportAttempt.status, 403);
+  });
+});
+
+test('SEC-03 impose des sessions aleatoires, expirables et revocables', async () => {
+  await withServer(async (base) => {
+    const user = db.raw().users[0];
+    const first = issueToken(user);
+    const second = issueToken(user);
+    assert.notEqual(first, second);
+    assert.match(first, /^[a-f0-9]{64}$/);
+
+    const activeSession = db.raw().sessions.find((session) => session.token === first);
+    assert.ok(Date.parse(activeSession.expiresAt) > Date.now());
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${first}` } })).status, 200);
+
+    db.insert('sessions', {
+      token: 'expired-token', userId: user.id,
+      createdAt: new Date(Date.now() - 120_000).toISOString(),
+      expiresAt: new Date(Date.now() - 60_000).toISOString(), revokedAt: null,
+    });
+    db.insert('sessions', {
+      token: 'revoked-token', userId: user.id,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 60_000).toISOString(), revokedAt: new Date().toISOString(),
+    });
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer expired-token' } })).status, 401);
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer revoked-token' } })).status, 401);
+
+    const oldSeedToken = Buffer.from('1.1.1709800000000').toString('base64');
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${oldSeedToken}` } })).status, 401);
   });
 });
 
