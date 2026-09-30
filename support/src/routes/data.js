@@ -90,13 +90,8 @@ router.get('/messages', requireAuth, (req, res) => {
 
 // Export vers l'assureur partenaire.
 router.get('/exports/insurer', requireAuth, requireAdmin, (req, res) => {
-  const rows = db.raw().users.map((u) => ({
-    ...userWithoutSecrets(u),
-    questionnaires: db.query('questionnaires', (row) => row.userId === u.id),
-  }));
-  db.insert('exports', { id: db.nextId('exports'), by: req.user.id, at: new Date().toISOString(), count: rows.length });
-  log('info', 'insurer_export', { by: req.user.id, count: rows.length });
-  res.json(rows);
+  log('warn', 'insurer_export_blocked', { by: req.user.id, role: req.user.role });
+  return res.status(503).json({ error: 'export suspended pending legal and business validation' });
 });
 
 module.exports = router;

@@ -251,6 +251,23 @@ test('PRIV-03 ignore une entreprise declaree ou modifiee pour autoriser des tier
   });
 });
 
+test('PRIV-04 suspend tout export assureur sans produire de donnees', async () => {
+  await withServer(async (base) => {
+    const requestExport = (token) => fetch(`${base}/api/exports/insurer`, { headers: { authorization: `Bearer ${token}` } });
+    const employee = await requestExport('employee-token');
+    assert.equal(employee.status, 403);
+
+    for (const token of ['rh-token', 'admin-token']) {
+      const response = await requestExport(token);
+      assert.equal(response.status, 503);
+      const body = await response.json();
+      assert.match(body.error, /suspended/);
+      assert.equal(JSON.stringify(body).includes('questionnaires'), false);
+    }
+    assert.equal(db.raw().exports.length, 0);
+  });
+});
+
 test.after(() => {
   for (const file of [process.env.DB_FILE, process.env.LOG_FILE]) {
     try { fs.unlinkSync(file); } catch { /* fichier absent ou encore ferme par Node */ }
