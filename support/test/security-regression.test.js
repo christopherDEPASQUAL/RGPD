@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -128,6 +129,44 @@ test('SEC-04 exclut les secrets des journaux', async () => {
     assert.equal(contents.includes(password), false);
     assert.match(contents, /"password":"\[REDACTED\]"/);
     assert.match(contents, /"token":"\[REDACTED\]"/);
+  });
+});
+
+test('SEC-05 utilise scrypt et migre un ancien SHA-256 apres connexion valide', async () => {
+  await withServer(async (base) => {
+    const legacyPassword = 'LegacyPassword!';
+    const legacyHash = crypto.createHash('sha256').update(legacyPassword).digest('hex');
+    db.update('users', (user) => user.id === 1, { passwordHash: legacyHash });
+
+    const rejected = await fetch(`${base}/api/login`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'employee@acme.example', password: 'wrong' }),
+    });
+    assert.equal(rejected.status, 401);
+    assert.equal(db.raw().users[0].passwordHash, legacyHash);
+
+    const accepted = await fetch(`${base}/api/login`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'employee@acme.example', password: legacyPassword }),
+    });
+    assert.equal(accepted.status, 200);
+    const migrated = db.raw().users[0].passwordHash;
+    assert.match(migrated, /^scrypt\$[a-f0-9]{32}\$[a-f0-9]{128}$/);
+    assert.notEqual(migrated, legacyHash);
+    assert.equal(db.verifyPassword(legacyPassword, migrated).valid, true);
+
+    const sharedPassword = 'SamePassword!';
+    for (const email of ['salt-a@example.test', 'salt-b@example.test']) {
+      const response = await fetch(`${base}/api/register`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password: sharedPassword }),
+      });
+      assert.equal(response.status, 201);
+    }
+    const hashes = db.raw().users.filter((user) => user.email.startsWith('salt-')).map((user) => user.passwordHash);
+    assert.equal(hashes.length, 2);
+    assert.notEqual(hashes[0], hashes[1]);
+    assert.equal(hashes.every((hash) => db.verifyPassword(sharedPassword, hash).valid), true);
   });
 });
 

@@ -38,8 +38,15 @@ router.post('/login', (req, res) => {
   const { email, password } = req.body || {};
   log('info', 'login_attempt', { email });
   const user = db.query('users', (row) => row.email === email)[0];
-  if (!user || user.passwordHash !== db.hashPassword(password)) {
+  const verification = user ? db.verifyPassword(password, user.passwordHash) : { valid: false };
+  if (!verification.valid) {
     return res.status(401).json({ error: 'invalid credentials' });
+  }
+  if (verification.needsMigration) {
+    db.update('users', (row) => row.id === user.id, {
+      passwordHash: db.hashPassword(password),
+      passwordMigratedAt: new Date().toISOString(),
+    });
   }
   const token = issueToken(user);
   res.json({ token, user });

@@ -3,10 +3,9 @@
 // Peuple la base de demonstration.
 const fs = require('node:fs');
 const path = require('node:path');
-const crypto = require('node:crypto');
+const { hashPassword } = require('../src/db');
 
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'wellwork.json');
-const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
 // PRNG deterministe pour un jeu de donnees stable.
 let s = 12345;
@@ -33,9 +32,9 @@ function addUser(u) {
 }
 
 // Comptes de reference
-addUser({ email: 'admin@wellwork.example', passwordHash: sha('Admin2024!'), firstName: 'Admin', lastName: 'System', company: 'WellWork', role: 'admin', birthDate: '1985-05-20' });
-addUser({ email: 'rh@acme.example', passwordHash: sha('AcmeRh2024'), firstName: 'Rachel', lastName: 'Hays', company: 'ACME', role: 'rh', birthDate: '1979-11-02' });
-addUser({ email: 'coach@wellwork.example', passwordHash: sha('coach123'), firstName: 'Coach', lastName: 'Vaillant', company: 'WellWork', role: 'coach', birthDate: '1990-03-15' });
+addUser({ email: 'admin@wellwork.example', passwordHash: hashPassword('Admin2024!'), firstName: 'Admin', lastName: 'System', company: 'WellWork', role: 'admin', birthDate: '1985-05-20' });
+addUser({ email: 'rh@acme.example', passwordHash: hashPassword('AcmeRh2024'), firstName: 'Rachel', lastName: 'Hays', company: 'ACME', role: 'rh', birthDate: '1979-11-02' });
+addUser({ email: 'coach@wellwork.example', passwordHash: hashPassword('coach123'), firstName: 'Coach', lastName: 'Vaillant', company: 'WellWork', role: 'coach', birthDate: '1990-03-15' });
 
 // 60 salaries
 for (let i = 0; i < 60; i++) {
@@ -44,7 +43,7 @@ for (let i = 0; i < 60; i++) {
   const company = pick(companies);
   const u = addUser({
     email: `${fn}.${ln}${i}@${company}.example`.toLowerCase(),
-    passwordHash: sha(pick(['Password1', 'Bienvenue2024', 'azerty123', 'Sport2024!', 'Soleil34'])),
+    passwordHash: hashPassword(pick(['Password1', 'Bienvenue2024', 'azerty123', 'Sport2024!', 'Soleil34'])),
     firstName: fn, lastName: ln, company,
     birthDate: `19${60 + Math.floor(rnd() * 40)}-${String(1 + Math.floor(rnd() * 12)).padStart(2, '0')}-${String(1 + Math.floor(rnd() * 28)).padStart(2, '0')}`,
     deleted: rnd() < 0.1,

@@ -22,9 +22,29 @@ function save() {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Hash "maison" du mot de passe. SHA-256 hex.
+const SCRYPT_KEY_LENGTH = 64;
+
 function hashPassword(pwd) {
-  return crypto.createHash('sha256').update(pwd).digest('hex');
+  if (typeof pwd !== 'string' || !pwd) throw new TypeError('password must be a non-empty string');
+  const salt = crypto.randomBytes(16);
+  const derived = crypto.scryptSync(pwd, salt, SCRYPT_KEY_LENGTH);
+  return `scrypt$${salt.toString('hex')}$${derived.toString('hex')}`;
+}
+
+function verifyPassword(pwd, stored) {
+  if (typeof pwd !== 'string' || typeof stored !== 'string') return { valid: false, needsMigration: false };
+  if (/^[a-f0-9]{64}$/i.test(stored)) {
+    const candidate = crypto.createHash('sha256').update(pwd).digest();
+    const legacy = Buffer.from(stored, 'hex');
+    return { valid: crypto.timingSafeEqual(candidate, legacy), needsMigration: true };
+  }
+  const [scheme, saltHex, derivedHex, extra] = stored.split('$');
+  if (scheme !== 'scrypt' || extra || !/^[a-f0-9]{32}$/i.test(saltHex) || !/^[a-f0-9]{128}$/i.test(derivedHex)) {
+    return { valid: false, needsMigration: false };
+  }
+  const candidate = crypto.scryptSync(pwd, Buffer.from(saltHex, 'hex'), SCRYPT_KEY_LENGTH);
+  const expected = Buffer.from(derivedHex, 'hex');
+  return { valid: crypto.timingSafeEqual(candidate, expected), needsMigration: false };
 }
 
 // Recherche interne avec un predicat construit par le serveur.
@@ -54,4 +74,4 @@ function nextId(collection) {
   return rows.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1;
 }
 
-module.exports = { load, save, query, insert, update, nextId, hashPassword, raw: () => data, DB_FILE };
+module.exports = { load, save, query, insert, update, nextId, hashPassword, verifyPassword, raw: () => data, DB_FILE };
