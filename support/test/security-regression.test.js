@@ -23,8 +23,12 @@ function writeDatabase() {
     users: [
       { id: 1, email: 'employee@acme.example', company: 'ACME', role: 'employee', passwordHash: 'unused', deleted: false },
       { id: 2, email: 'other@globex.example', company: 'Globex', role: 'employee', passwordHash: 'unused', deleted: false },
+      { id: 3, email: 'admin@wellwork.example', company: 'WellWork', role: 'admin', passwordHash: 'unused', deleted: false },
     ],
-    sessions: [{ token: 'employee-token', userId: 1, createdAt: new Date().toISOString(), expiresAt }],
+    sessions: [
+      { token: 'employee-token', userId: 1, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
+      { token: 'admin-token', userId: 3, createdAt: new Date().toISOString(), expiresAt, revokedAt: null },
+    ],
     questionnaires: [], messages: [], sessionsSport: [], exports: [], consents: [],
   }));
 }
@@ -167,6 +171,29 @@ test('SEC-05 utilise scrypt et migre un ancien SHA-256 apres connexion valide', 
     assert.equal(hashes.length, 2);
     assert.notEqual(hashes[0], hashes[1]);
     assert.equal(hashes.every((hash) => db.verifyPassword(sharedPassword, hash).valid), true);
+  });
+});
+
+test('PRIV-06 exclut les secrets derives de toutes les reponses utilisateur', async () => {
+  await withServer(async (base) => {
+    const registration = await fetch(`${base}/api/register`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'privacy@example.test', password: 'SecretPassword!' }),
+    });
+    assert.equal(registration.status, 201);
+    const registered = await registration.json();
+    const endpoints = [
+      registered,
+      await (await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${registered.token}` } })).json(),
+      await (await fetch(`${base}/api/users`, { headers: { authorization: 'Bearer admin-token' } })).json(),
+      await (await fetch(`${base}/api/users/1`, { headers: { authorization: 'Bearer admin-token' } })).json(),
+      await (await fetch(`${base}/api/exports/insurer`, { headers: { authorization: 'Bearer admin-token' } })).json(),
+    ];
+    for (const payload of endpoints) {
+      assert.equal(JSON.stringify(payload).includes('passwordHash'), false);
+      assert.equal(JSON.stringify(payload).includes('passwordMigratedAt'), false);
+    }
+    assert.equal(db.raw().users.some((user) => typeof user.passwordHash === 'string'), true);
   });
 });
 

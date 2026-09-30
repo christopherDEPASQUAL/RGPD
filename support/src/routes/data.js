@@ -4,6 +4,7 @@ const express = require('express');
 const db = require('../db');
 const { log } = require('../logger');
 const { requireAuth, requireAdmin } = require('../auth');
+const { userWithoutSecrets } = require('../presenters');
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ router.get('/users/:id', requireAuth, (req, res) => {
   const u = db.query('users', (row) => row.id === requestedId)[0];
   if (!u) return res.status(404).json({ error: 'not found' });
   const questionnaires = db.query('questionnaires', (row) => row.userId === requestedId);
-  res.json({ ...u, questionnaires });
+  res.json({ ...userWithoutSecrets(u), questionnaires });
 });
 
 // Recherche annuaire pour les coachs et les RH.
@@ -36,7 +37,7 @@ router.get('/users', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'unsupported filter' });
   }
   const rows = db.query('users', (row) => requestedFilters.every((key) => row[key] === req.query[key]));
-  res.json(rows);
+  res.json(rows.map(userWithoutSecrets));
 });
 
 // Messagerie coach / salarie.
@@ -52,7 +53,7 @@ router.get('/messages', requireAuth, (req, res) => {
 // Export vers l'assureur partenaire.
 router.get('/exports/insurer', requireAuth, requireAdmin, (req, res) => {
   const rows = db.raw().users.map((u) => ({
-    ...u,
+    ...userWithoutSecrets(u),
     questionnaires: db.query('questionnaires', (row) => row.userId === u.id),
   }));
   db.insert('exports', { id: db.nextId('exports'), by: req.user.id, at: new Date().toISOString(), count: rows.length });

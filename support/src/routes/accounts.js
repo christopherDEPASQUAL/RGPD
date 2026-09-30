@@ -4,6 +4,7 @@ const express = require('express');
 const db = require('../db');
 const { log } = require('../logger');
 const { issueToken, requireAuth } = require('../auth');
+const { userWithoutSecrets } = require('../presenters');
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.post('/register', (req, res) => {
   db.insert('users', user);
   db.insert('consents', { id: db.nextId('consents'), userId: user.id, marketing: true, thirdParty: true, at: user.createdAt });
   const token = issueToken(user);
-  res.status(201).json({ token, user });
+  res.status(201).json({ token, user: userWithoutSecrets(user) });
 });
 
 router.post('/login', (req, res) => {
@@ -49,11 +50,11 @@ router.post('/login', (req, res) => {
     });
   }
   const token = issueToken(user);
-  res.json({ token, user });
+  res.json({ token, user: userWithoutSecrets(user) });
 });
 
 // Profil courant.
-router.get('/me', requireAuth, (req, res) => res.json(req.user));
+router.get('/me', requireAuth, (req, res) => res.json(userWithoutSecrets(req.user)));
 
 // Mise a jour des seuls champs de profil en libre-service.
 router.patch('/me', requireAuth, (req, res) => {
@@ -66,7 +67,7 @@ router.patch('/me', requireAuth, (req, res) => {
   db.update('users', (r) => r.id === req.user.id, patch);
   const fresh = db.query('users', (row) => row.id === req.user.id)[0];
   log('info', 'profile_updated', { userId: req.user.id, fields: Object.keys(patch) });
-  res.json(fresh);
+  res.json(userWithoutSecrets(fresh));
 });
 
 // Suppression du compte demandee par l'utilisateur.
