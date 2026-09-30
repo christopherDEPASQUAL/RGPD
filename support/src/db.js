@@ -17,6 +17,26 @@ function load() {
   if (fs.existsSync(DB_FILE)) {
     const loaded = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     data = Object.fromEntries(COLLECTIONS.map((collection) => [collection, Array.isArray(loaded[collection]) ? loaded[collection] : []]));
+    const invalidatedAt = new Date().toISOString();
+    let changed = false;
+    for (const consent of data.consents) {
+      if (!consent.status) {
+        consent.status = 'invalidated';
+        consent.invalidatedAt = invalidatedAt;
+        consent.invalidationReason = 'legacy-record-without-verifiable-choice';
+        changed = true;
+      }
+    }
+    for (const user of data.users) {
+      const decisions = data.consents.filter((consent) => consent.userId === user.id && consent.status === 'recorded');
+      const latest = decisions.at(-1);
+      const expectedMarketing = latest ? latest.marketing : false;
+      if (user.marketingOptIn !== expectedMarketing) {
+        user.marketingOptIn = expectedMarketing;
+        changed = true;
+      }
+    }
+    if (changed) save();
   }
 }
 function save() {

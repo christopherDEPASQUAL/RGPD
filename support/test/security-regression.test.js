@@ -17,9 +17,9 @@ const db = require('../src/db');
 const { issueToken } = require('../src/auth');
 const { log } = require('../src/logger');
 
-function writeDatabase() {
+function writeDatabase(mutate) {
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
-  fs.writeFileSync(process.env.DB_FILE, JSON.stringify({
+  const contents = {
     users: [
       { id: 1, email: 'employee@acme.example', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', passwordHash: 'unused', deleted: false },
       { id: 2, email: 'other@globex.example', company: 'Globex', tenantId: 'tenant-globex', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', passwordHash: 'unused', deleted: false },
@@ -38,11 +38,13 @@ function writeDatabase() {
     questionnaires: [{ id: 1, userId: 1, answers: { stress: 5 }, at: new Date().toISOString() }],
     messages: [], sessionsSport: [], exports: [], consents: [],
     coachAssignments: [{ id: 1, coachUserId: 5, employeeUserId: 1, tenantId: 'tenant-acme', verifiedAt: '2026-01-01T00:00:00.000Z', revokedAt: null }],
-  }));
+  };
+  if (mutate) mutate(contents);
+  fs.writeFileSync(process.env.DB_FILE, JSON.stringify(contents));
 }
 
-async function withServer(fn) {
-  writeDatabase();
+async function withServer(fn, mutate) {
+  writeDatabase(mutate);
   const app = createApp();
   const server = app.listen(0);
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -298,6 +300,70 @@ test('PRIV-05 supprime les donnees associees et interdit tout nouvel acces', asy
     assert.equal(db.raw().messages.some((row) => row.from === 1 || row.to === 1), false);
     assert.equal(db.raw().coachAssignments.some((row) => row.coachUserId === 1 || row.employeeUserId === 1), false);
     assert.equal(db.raw().exports.some((row) => row.by === 1), false);
+  });
+});
+
+test('PRIV-07 invalide les anciens indicateurs et historise les choix et retraits', async () => {
+  await withServer(async (base) => {
+    const headers = { authorization: 'Bearer employee-token', 'content-type': 'application/json' };
+
+    const initial = await (await fetch(`${base}/api/preferences`, { headers })).json();
+    assert.deepEqual(initial, { marketing: false, thirdParty: false, requiresChoice: true, recordedAt: null });
+    const legacy = db.raw().consents.find((row) => row.userId === 1);
+    assert.equal(legacy.status, 'invalidated');
+    assert.equal(legacy.invalidationReason, 'legacy-record-without-verifiable-choice');
+    assert.equal(db.raw().users.find((row) => row.id === 1).marketingOptIn, false);
+
+    const registration = await fetch(`${base}/api/register`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: 'new@example.test', password: 'NewAccount!',
+        marketingOptIn: true, marketing: true, thirdParty: true,
+      }),
+    });
+    assert.equal(registration.status, 201);
+    const registered = await registration.json();
+    assert.equal(registered.user.marketingOptIn, false);
+    assert.deepEqual(
+      db.raw().consents.find((row) => row.userId === registered.user.id),
+      {
+        id: 2, userId: registered.user.id, marketing: false, thirdParty: false,
+        status: 'no-choice', source: 'registration-default',
+        recordedAt: registered.user.createdAt, version: 1,
+      },
+    );
+
+    const selectedResponse = await fetch(`${base}/api/preferences`, {
+      method: 'PATCH', headers, body: JSON.stringify({ marketing: true, thirdParty: false }),
+    });
+    assert.equal(selectedResponse.status, 200);
+    assert.deepEqual(await selectedResponse.json(), {
+      marketing: true, thirdParty: false, requiresChoice: false,
+      recordedAt: db.raw().consents.at(-1).recordedAt,
+    });
+    db.load();
+    assert.equal(db.raw().users.find((row) => row.id === 1).marketingOptIn, true);
+
+    const withdrawn = await fetch(`${base}/api/preferences`, {
+      method: 'PATCH', headers, body: JSON.stringify({ marketing: false, thirdParty: false }),
+    });
+    assert.equal(withdrawn.status, 200);
+    const history = db.raw().consents.filter((row) => row.userId === 1);
+    assert.equal(history.length, 3);
+    assert.equal(history[0].status, 'invalidated');
+    assert.deepEqual(history.slice(1).map(({ marketing, thirdParty, status, source }) => ({ marketing, thirdParty, status, source })), [
+      { marketing: true, thirdParty: false, status: 'recorded', source: 'self-service' },
+      { marketing: false, thirdParty: false, status: 'recorded', source: 'self-service' },
+    ]);
+    assert.equal(db.raw().users.find((row) => row.id === 1).marketingOptIn, false);
+
+    const incomplete = await fetch(`${base}/api/preferences`, {
+      method: 'PATCH', headers, body: JSON.stringify({ marketing: true }),
+    });
+    assert.equal(incomplete.status, 400);
+  }, (contents) => {
+    contents.users[0].marketingOptIn = true;
+    contents.consents.push({ id: 1, userId: 1, marketing: true, thirdParty: true, at: '2024-02-10T09:00:00.000Z' });
   });
 });
 

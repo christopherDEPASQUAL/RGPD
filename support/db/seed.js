@@ -28,7 +28,7 @@ function addUser(u) {
   const user = {
     id,
     role: 'employee',
-    marketingOptIn: true,
+    marketingOptIn: false,
     createdAt: '2024-02-10T09:00:00.000Z',
     deleted: false,
     tenantId: null,
@@ -36,7 +36,11 @@ function addUser(u) {
     ...u,
   };
   users.push(user);
-  consents.push({ id, userId: id, marketing: true, thirdParty: true, at: user.createdAt });
+  consents.push({
+    id, userId: id, marketing: false, thirdParty: false,
+    status: 'no-choice', source: 'registration-default',
+    recordedAt: user.createdAt, version: 1,
+  });
   return user;
 }
 

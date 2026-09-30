@@ -27,12 +27,17 @@ router.post('/register', (req, res) => {
     tenantVerifiedAt: null,
     birthDate,
     role: 'employee',
-    marketingOptIn: true,
+    marketingOptIn: false,
     createdAt: new Date().toISOString(),
     deleted: false,
   };
   db.insert('users', user);
-  db.insert('consents', { id: db.nextId('consents'), userId: user.id, marketing: true, thirdParty: true, at: user.createdAt });
+  db.insert('consents', {
+    id: db.nextId('consents'), userId: user.id,
+    marketing: false, thirdParty: false,
+    status: 'no-choice', source: 'registration-default',
+    recordedAt: user.createdAt, version: 1,
+  });
   const token = issueToken(user);
   res.status(201).json({ token, user: userWithoutSecrets(user) });
 });
@@ -70,6 +75,38 @@ router.patch('/me', requireAuth, (req, res) => {
   const fresh = db.query('users', (row) => row.id === req.user.id)[0];
   log('info', 'profile_updated', { userId: req.user.id, fields: Object.keys(patch) });
   res.json(userWithoutSecrets(fresh));
+});
+
+function currentPreferences(userId) {
+  const decisions = db.query('consents', (row) => row.userId === userId && row.status === 'recorded');
+  const latest = decisions.at(-1);
+  return latest
+    ? { marketing: latest.marketing, thirdParty: latest.thirdParty, requiresChoice: false, recordedAt: latest.recordedAt }
+    : { marketing: false, thirdParty: false, requiresChoice: true, recordedAt: null };
+}
+
+// Choix facultatifs et independants, distincts de l'inscription et du questionnaire de sante.
+router.get('/preferences', requireAuth, (req, res) => {
+  res.json(currentPreferences(req.user.id));
+});
+
+router.patch('/preferences', requireAuth, (req, res) => {
+  const body = req.body || {};
+  const fields = Object.keys(body);
+  if (fields.length !== 2 || !fields.includes('marketing') || !fields.includes('thirdParty')
+      || typeof body.marketing !== 'boolean' || typeof body.thirdParty !== 'boolean') {
+    return res.status(400).json({ error: 'marketing and thirdParty boolean choices required' });
+  }
+  const recordedAt = new Date().toISOString();
+  db.insert('consents', {
+    id: db.nextId('consents'), userId: req.user.id,
+    marketing: body.marketing, thirdParty: body.thirdParty,
+    status: 'recorded', source: 'self-service',
+    recordedAt, version: 1,
+  });
+  db.update('users', (row) => row.id === req.user.id, { marketingOptIn: body.marketing });
+  log('info', 'preferences_updated', { userId: req.user.id, marketing: body.marketing, thirdParty: body.thirdParty });
+  return res.json(currentPreferences(req.user.id));
 });
 
 // Suppression du compte demandee par l'utilisateur.

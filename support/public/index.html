@@ -33,6 +33,14 @@
   </fieldset>
 
   <fieldset>
+    <legend>Preferences facultatives</legend>
+    <label><input id="marketing" type="checkbox"> Recevoir des communications marketing</label>
+    <label><input id="thirdParty" type="checkbox"> Autoriser le partage avec des tiers pour leurs communications</label>
+    <p>Ces deux choix sont independants du compte et du questionnaire de sante. Ils peuvent etre retires ici.</p>
+    <button onclick="savePreferences()">Enregistrer mes choix</button>
+  </fieldset>
+
+  <fieldset>
     <legend>Reponse serveur</legend>
     <pre id="out">-</pre>
   </fieldset>
@@ -59,6 +67,15 @@ async function register() {
 }
 async function sendQuestionnaire() {
   out(await api('/questionnaires', { method: 'POST', body: JSON.stringify({ answers: { stress: Number(val('stress')), antecedents: val('antecedents') } }) }));
+}
+async function savePreferences() {
+  out(await api('/preferences', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      marketing: document.getElementById('marketing').checked,
+      thirdParty: document.getElementById('thirdParty').checked,
+    }),
+  }));
 }
 </script>
 </body>
