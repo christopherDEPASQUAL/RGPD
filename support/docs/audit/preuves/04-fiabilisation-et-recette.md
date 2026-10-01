@@ -55,6 +55,28 @@ Pour les preuves historiques, utiliser les liens ci-dessous plutôt qu'un lien r
 
 **Reste à faire à l'assemblage :** certains liens relatifs anciens dans A.3/A.4/B.1 ouvrent encore le code de la branche consultée. Cet index fournit les références correctes mais ne remplace pas automatiquement tous ces liens dans le corps des documents. Leur normalisation exhaustive n'est donc pas déclarée terminée. Conserver les ancres de lignes précises lors de cette dernière passe.
 
+**Suivi des retouches du 1er octobre :** le point ci-dessus décrit l'état de la première revue. Les 38 liens vers le code dans A.3/A.4/B.1 ont ensuite été remplacés par des liens au commit initial avec ancres de lignes. Le test `dossier-references.test.js` vérifie les liens de A/B contre les objets Git, sans requête réseau. La pagination et les liens du PDF final restent à vérifier après export. Cette mise à jour ne modifie pas les résultats historiques de CI rapportés plus haut.
+
 ## Limites conservées
 
 Aucune base légale, durée de conservation, autorisation métier ou acceptation de risque réel n'a été inventée. Les réserves de C.3 restent ouvertes. Les observations sur données fictives ne prouvent toujours pas l'origine du fichier signalé sur le forum. Voir la [synthèse des statuts et des décisions restantes](../../dossier/00-synthese-et-statuts.md).
+
+## Recette locale des retouches — 1er octobre 2026
+
+Branche locale `review/retouches-audit-partie-d`, issue de `261b27bfa2f990c6920e74bd3a10d3a3c9cf094f`, avec les retouches non commitées lors de cette recette. Environnement : Windows/PowerShell, Node `v24.11.0`. Ce résultat ne remplace pas la recette GitHub Actions historique et ne prétend pas à une nouvelle exécution Linux.
+
+- **Preuve PRIV-03 :** le script historique préservé peut produire un indicateur vrai lorsqu'un profil répond 403 sans propriété `company`. Le validateur exige désormais aussi les observations réussies de profil/annuaire. Trois tests supplémentaires couvrent succès, contre-exemple exact et dix cas de corroboration absente ou incohérente. Le script historique et son empreinte restent inchangés.
+- **Références :** 38 liens A/B ancrés sur le commit initial; deux tests contrôlent l'absence de liens relatifs vers le code courant et la validité des fichiers/plages dans les objets Git. Les explications de B.1/C.2 distinguent maintenant l'ancien script du lanceur actuel.
+- **Workflow :** pushes sur `main`, `remediation/**`, `review/**`, `docs/**` pour `support/**` ou le workflow; toutes les pull requests; déclenchement manuel déclaré. Interface, seed et dossier sont inclus. Permissions de lecture conservées, aucun déploiement. Les filtres et événements suivent la [syntaxe officielle GitHub Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax). Le déclenchement manuel nécessite la présence du workflow sur la branche par défaut.
+- **D :** abuser story D-01 reformulée du point de vue du contributeur fautif; revalidation des références déjà corrigées, sans présenter cette correction comme future. Corps réduit de 3 658 à 3 219 mots comptés par séparation sur les espaces, soit environ 12 %. Les 20 fiches, charges, dépendances et budget sont conservés; le PDF n'a pas encore été paginé.
+
+| Contrôle local | Résultat final |
+|---|---|
+| Tests ciblés observations/références | 7 réussites, 0 échec |
+| `npm.cmd test` | 30 réussites, 0 échec |
+| `npm.cmd run lint` | Aucun diagnostic |
+| Vérificateur CVSS | 10 scores et contrôles internes validés |
+| Lanceur historique | 12 constats dynamiques + 1 statique, `summary.failed` vide |
+| Workflow | YAML parsé et filtres/permissions contrôlés localement; aucune exécution distante déclenchée |
+
+Une première exécution a détecté une fermeture de fonction manquante dans le nouveau test de références; elle a été corrigée avant les résultats finaux ci-dessus. Ce défaut du test n'a pas été attribué à l'application. Aucune modification de `src/`, du seed, de l'interface, du lockfile ou de la base locale n'a été nécessaire. Les quatre notes locales exclues ont été préservées; aucun push ni fusion n'a été effectué pendant ces retouches.

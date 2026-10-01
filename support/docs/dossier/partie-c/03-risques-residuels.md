@@ -1,6 +1,6 @@
 # Partie C.3 — Risques résiduels et décision
 
-- **Version :** 1.0 — 1er octobre 2026
+- **Version :** 1.1 — 1er octobre 2026
 - **Statut général :** aucune approbation organisationnelle réelle n'est fournie ou inventée. Les statuts sont des recommandations d'audit.
 
 ## Règles de statut
@@ -33,5 +33,13 @@
 Les valeurs résiduelles cibles proposées en A.3 ne deviennent donc pas des mesures acquises. Une nouvelle cotation doit être faite avec les preuves de l'environnement réel.
 
 ## Décision proposée
+
+**Réponse à la rubrique « constats résiduels acceptés » : aucune acceptation organisationnelle réelle n'est attestée.** RR-05 fait uniquement l'objet d'une proposition de tolérance pédagogique :
+
+- **Périmètre et justification :** conserver temporairement le stockage JSON pour une démonstration locale isolée sur données fictives, afin de vérifier les corrections sans attendre une migration. Cela ne démontre pas la robustesse du stockage ni des sauvegardes; une perte du jeu de démonstration reste possible.
+- **Décideur attendu :** responsable du traitement pour toute exploitation réelle, sur analyse exploitation/RSSI et avis DPO pour les risques aux personnes. Aucun accord de ces acteurs n'est fourni; l'audit ne le remplace pas.
+- **Conditions et réexamen :** aucune donnée réelle ni exposition Internet; réexamen avant tout pilote, changement de périmètre ou après un incident de stockage. D-04, D-14 et D-15 prévoient l'étude, la migration et la preuve de restauration. L'acceptation réelle éventuelle devra être datée et attribuée au décideur compétent.
+
+Cette proposition limitée à RR-05 ne vaut pas acceptation des autres risques du registre.
 
 La branche peut servir à une recette pédagogique sur données fictives. Elle ne doit pas être présentée comme prête pour une mise en production de questionnaires de santé. La décision de passage appartient au responsable réel du traitement, après satisfaction des conditions de RR-01 à RR-09 et réévaluation de l'AIPD; aucune acceptation implicite n'est déduite du calendrier de l'exercice.

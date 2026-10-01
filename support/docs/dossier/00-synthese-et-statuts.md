@@ -1,10 +1,10 @@
 # Synthèse avant assemblage — état technique et décisions restantes
 
-Version de revue du 1er octobre 2026. Cette synthèse complète A à C sans remplacer leurs raisonnements ni annoncer une conformité globale. Les résultats de la nouvelle recette figurent dans [la note de fiabilisation](../audit/preuves/04-fiabilisation-et-recette.md).
+Version de revue du 1er octobre 2026. Cette synthèse relie les parties A à D sans remplacer leurs raisonnements ni annoncer une conformité globale. Les résultats des recettes successives figurent dans [C.2](partie-c/02-correctifs-et-preuves.md) et [la note de fiabilisation](../audit/preuves/04-fiabilisation-et-recette.md).
 
 ## Lecture des statuts
 
-Les parties A et B décrivent la baseline `e16cedcf0f8adb359621240366c8f0cbb251b8c9`. C décrit les correctifs déjà présents avant cette revue, avec leurs commits. La branche `review/fiabilisation-audit` ajoute de l'outillage de preuve et des tests; elle ne change pas les règles de l'application.
+Les parties A et B décrivent la baseline `e16cedcf0f8adb359621240366c8f0cbb251b8c9`. C décrit les correctifs appliqués, leurs commits et leurs limites. La revue de fiabilisation ajoute de l'outillage de preuve et des tests, sans changer les règles de l'application. [D](partie-d/README.md) est rédigée : elle planifie les actions restantes, sans prétendre que les sprints ont été exécutés. La revue locale sur `review/retouches-audit-partie-d`, à partir de `261b27bfa2f990c6920e74bd3a10d3a3c9cf094f`, comprend encore des retouches non commitées; ce SHA seul ne représente donc pas tout l'état testé.
 
 | Ensemble | Correction technique déjà décrite en C.2 | Limite restant ouverte | Suite du travail |
 |---|---|---|---|
@@ -22,12 +22,16 @@ Les parties A et B décrivent la baseline `e16cedcf0f8adb359621240366c8f0cbb251b
 
 Les références de commit de chaque correction restent dans [C.2](partie-c/02-correctifs-et-preuves.md). Les responsables et échéances proposés restent dans [C.3](partie-c/03-risques-residuels.md). Un test réussi n'efface pas ces réserves.
 
-## Décision métier à ajouter au futur backlog : messagerie
+## Décision métier inscrite au backlog : messagerie
 
 RT-03 et B.1 signalent déjà l'absence de contrôle d'une relation de coaching à l'envoi. Dans la version relue, le destinataire doit être un compte actif et la lecture reste limitée aux participants. Cela ne démontre pas une lecture globale de messages.
 
 **Action proposée MSG-01, non implémentée dans cette revue :** le responsable produit, avec le responsable des habilitations et le DPO/RSSI selon le besoin, doit décider si l'envoi libre entre comptes est voulu ou si une relation autorisée est requise. En cas de restriction, préciser les interlocuteurs, les périmètres et les effets d'une révocation, puis tester un échange autorisé et un échange interdit. Ne pas imposer une règle inventée uniquement pour faire passer un test.
 
-## Préparer D sans inventer des validations
+Cette action est reprise dans le [backlog détaillé de D](partie-d/annexes/backlog-detaille.md) : D-03 prépare la décision métier et D-09 applique puis teste la règle retenue. Leur inscription au backlog ne clôt pas MSG-01.
 
-Reprendre les actions ouvertes ci-dessus, les RR de C.3 et MSG-01 dans le backlog. Pour chaque ticket : lien au constat, responsable proposé, critère vérifiable, dépendance, estimation et sprint. Les durées de conservation, contrats et validations réelles ne sont pas créés par cette synthèse. Les cinq erreurs de l'annexe IA doivent rester reliées à de véritables productions de l'outil et à leurs vérifications.
+## Planification D disponible, décisions encore ouvertes
+
+Les 20 tickets de D couvrent les risques RR-01 à RR-09 et MSG-01, avec sources, pilotes proposés, critères vérifiables, dépendances, estimations et affectation à la réponse immédiate ou aux trois sprints. Les capacités et le budget sont des hypothèses explicites, pas des engagements obtenus. Les durées de conservation, contrats et validations réelles restent à établir selon ce plan.
+
+Pour le rendu, restent à consolider l'annexe IA, la présentation E et le PDF A–D de 30 pages maximum hors annexes. Les cinq erreurs de l'annexe IA doivent rester reliées à de véritables productions de l'outil et à leurs vérifications. La finalisation de ces livrables n'autorise pas une mise en production.

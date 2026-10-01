@@ -1,6 +1,6 @@
 # Partie C.2 — Correctifs, commits et preuves
 
-- **Version :** 1.1 — 1er octobre 2026
+- **Version :** 1.2 — 1er octobre 2026
 - **Référence des constats :** [partie B.1](../partie-b/01-constats-securite.md) et [matrice initiale](../../audit/02-matrice-des-constats.md)
 - **Principe :** chaque statut ci-dessous décrit le code de la branche de remédiation, pas une production inconnue.
 
@@ -64,6 +64,8 @@ Le seed doit être vérifié avec `DB_FILE` pointant vers un fichier temporaire.
 
 ## Résultats réellement obtenus
 
+### Recette historique — 18 tests
+
 Recette exécutée le 1er octobre 2026 depuis `support/`, sous Windows/PowerShell, avec Node `v24.11.0` et npm `11.12.1`, sur le HEAD technique `61e7316`. Les fichiers de tests et de seed étaient temporaires; la base locale existante n'a pas été réensemencée.
 
 | Commande ou contrôle | Résultat observé |
@@ -76,11 +78,26 @@ Recette exécutée le 1er octobre 2026 depuis `support/`, sous Windows/PowerShel
 
 Le comptage est celui du lanceur Node; les intitulés détaillés restent visibles dans la sortie de recette. Les assertions multiples d'un même scénario, par exemple les quatre états d'expiration refusés, restent regroupées dans un seul test nommé.
 
+### Recette locale de clôture du fond — 30 tests
+
+Contrôles réexécutés le 1er octobre 2026 sous Windows/PowerShell, Node `v24.11.0` et npm `11.12.1`, sur `review/retouches-audit-partie-d` : HEAD `261b27bfa2f990c6920e74bd3a10d3a3c9cf094f` **avec modifications locales non commitées**, notamment le validateur d'observations et les tests de références documentaires. Les résultats portent sur cet état de travail, pas sur le commit seul; le détail des retouches figure dans la [note de fiabilisation](../../audit/preuves/04-fiabilisation-et-recette.md).
+
+| Commande ou contrôle | Résultat observé |
+|---|---|
+| `npm test` | **30 tests réussis, 0 échec** : régressions applicatives, fonctionnement, interface, outillage de preuve et références historiques |
+| `npm run lint` | Succès, aucun diagnostic ESLint |
+| `node scripts/audit/verify-cvss.js` | 10 scores du rapport et contrôles de calcul vérifiés |
+| `node scripts/audit/reproduce-findings.js` | Sur le commit initial vérifié : 12 constats dynamiques et 1 statique retrouvés; `summary.failed` vide. Ce résultat confirme les défauts historiques, pas les corrections |
+| `git diff --check` | Aucune erreur d'espace; avertissements de conversion LF/CRLF distincts d'un échec |
+| Base locale | Empreinte SHA-256 identique avant/après les contrôles; aucun réensemencement de cette base |
+
+Cette recette complète celle à 18 tests sans la réécrire. Elle n'atteste ni une exécution du workflow GitHub sur ces retouches ni un déploiement. Après enregistrement des modifications, identifier le commit final et refaire la recette de livraison sur une copie propre.
+
 ## Baseline historique et branche corrigée
 
-Le script `scripts/audit/reproduce-findings.js` est une preuve de reproduction historique, mais il copie le **code présent dans le répertoire de travail**. Le simple affichage du hash `e16cedc…` ne prouve donc pas que ce code historique a réellement été exécuté. Il ne doit pas être utilisé comme preuve de non-régression des correctifs.
+Lors de la recette `61e7316` ci-dessus, le script historique copiait le **code présent dans le répertoire de travail** : afficher le hash `e16cedc…` ne suffisait pas à prouver la provenance. Cette limite explique pourquoi la recette C utilisait ses propres tests de non-régression.
 
-La preuve des corrections repose sur les tests actuels, exécutés contre le code du HEAD de la branche et sur des fichiers temporaires. Reproduire strictement la baseline nécessiterait un checkout ou worktree propre du commit de référence, opération qui n'a pas été faite ici afin de ne pas remplacer les changements locaux existants.
+Depuis la [revue de fiabilisation](../../audit/preuves/04-fiabilisation-et-recette.md), `node scripts/audit/reproduce-findings.js` extrait et vérifie les objets Git du commit initial, sans changer le répertoire de travail. Les scénarios historiques sont préservés; le lanceur valide leurs observations. La preuve des corrections reste distincte : `npm test` s'exécute sur le code corrigé avec des fichiers temporaires. Les résultats de la recette initiale ne sont pas réattribués à cette nouvelle version de l'outillage.
 
 ## Interprétation des résultats
 
