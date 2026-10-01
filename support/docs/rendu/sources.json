@@ -1,0 +1,73 @@
+{
+  "head": "7856e476a0b1b2b644a9ce5ae60ea91fc3d69cfe",
+  "sources": [
+    {
+      "path": "docs/dossier/partie-a/01-registre-des-traitements.md",
+      "sha256": "f5c7f290227bd41f42c9341aada1020a6c3f64781d30975aa7551299f9943312"
+    },
+    {
+      "path": "docs/dossier/partie-a/02-bases-legales-et-acteurs.md",
+      "sha256": "62d73308f69a4a10b9cde5b47fc2957ed03510c5a4ad2a6f8678bcd0abeec956"
+    },
+    {
+      "path": "docs/dossier/partie-a/03-aipd-questionnaires-sante.md",
+      "sha256": "bf594d51c35685b80c902c2238dd2a458de5c91ce8b5de8a7626f03f4398d5d6"
+    },
+    {
+      "path": "docs/dossier/partie-a/04-non-conformites-rgpd.md",
+      "sha256": "fa1ad8db9dc5fc2d5aaad9f4ad44f09548da29711c6cb3858c43e17679f08727"
+    },
+    {
+      "path": "docs/dossier/partie-b/01-constats-securite.md",
+      "sha256": "c692970cffd6e1110c05c0e424a7037d5cdc38110205a6f8f1124dabe8ddadd8"
+    },
+    {
+      "path": "docs/dossier/partie-b/02-scenarios-de-fuite-et-rgpd.md",
+      "sha256": "cf59dca353d8aca40c8c926aaafb3ad77f910af00d87d6f106e36574e1f5aba3"
+    },
+    {
+      "path": "docs/dossier/partie-b/03-violation-et-notifications.md",
+      "sha256": "9c7e798bbbc252631edd90e17d7637e28b515a5f5eb81bdf4d14ea620051728c"
+    },
+    {
+      "path": "docs/dossier/partie-c/01-plan-de-remediation.md",
+      "sha256": "2bdf970af3c6e86f8a022ff63d09d46ba18a49087af156702b2756b9e420d424"
+    },
+    {
+      "path": "docs/dossier/partie-c/02-correctifs-et-preuves.md",
+      "sha256": "b025aacdb09e1ac516aa37f3c75109eb5849a2171bead6447456746eb0cb6525"
+    },
+    {
+      "path": "docs/dossier/partie-c/03-risques-residuels.md",
+      "sha256": "d394f3f015255e51b74e59e2c5cd2eb3dc032154a1c3f459f476f16eeaa14c42"
+    },
+    {
+      "path": "docs/dossier/partie-d/README.md",
+      "sha256": "292e3a72506d7be973e6ea712c2e601d504edb909878e41717f817dfaad4f0cf"
+    },
+    {
+      "path": "docs/dossier/annexes/01-transparence-ia.md",
+      "sha256": "3c2c4221de5876b17f2c54042a661d750737811253b8a7fdd142c79afb8cfc96"
+    },
+    {
+      "path": "docs/dossier/partie-d/annexes/backlog-detaille.md",
+      "sha256": "9ca7d34917a3186622008ac70f11c8bfece2b4b9170558b12219cbd3b09fd542"
+    },
+    {
+      "path": "docs/dossier/partie-d/annexes/planning.json",
+      "sha256": "927b55eaf938b931db5e807bbe1113bd1114c851f4c0b9d89fcb4ad1f12ea20e"
+    },
+    {
+      "path": "docs/dossier/partie-d/annexes/sources-et-controles.md",
+      "sha256": "a547a8589ee69986f7595527985ec6d1365e9d41b23924ae1b2175dca864d334"
+    },
+    {
+      "path": "docs/audit/preuves/01-preuves-execution.md",
+      "sha256": "c39a5a018491b56343b400a4558a15403d57bdc4683ce0afa7411ebf64ecdf3c"
+    },
+    {
+      "path": "docs/audit/preuves/04-fiabilisation-et-recette.md",
+      "sha256": "d6ae835a2648b074cba780d8cddb22298e06a34cc5738ed78ef5a85de6d120e4"
+    }
+  ]
+}

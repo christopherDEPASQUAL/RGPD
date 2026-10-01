@@ -1,0 +1,79 @@
+{
+  "mainPages": 30,
+  "annexPages": 19,
+  "totalPages": 49,
+  "brokenLinks": [],
+  "overflow": [],
+  "sourceBlocksChecked": 1520,
+  "missingContent": [],
+  "starts": [
+    {
+      "title": "A.1 — Registre des traitements",
+      "page": 3
+    },
+    {
+      "title": "A.2 — Bases légales et acteurs",
+      "page": 5
+    },
+    {
+      "title": "A.3 — Analyse d'impact",
+      "page": 9
+    },
+    {
+      "title": "A.4 — Non-conformités RGPD",
+      "page": 11
+    },
+    {
+      "title": "B.1 — Constats de sécurité",
+      "page": 13
+    },
+    {
+      "title": "B.2 — Scénarios de fuite",
+      "page": 15
+    },
+    {
+      "title": "B.3 — Violation et notifications",
+      "page": 17
+    },
+    {
+      "title": "C.1 — Plan de remédiation",
+      "page": 19
+    },
+    {
+      "title": "C.2 — Correctifs et preuves",
+      "page": 20
+    },
+    {
+      "title": "C.3 — Risques résiduels",
+      "page": 23
+    },
+    {
+      "title": "D — Pilotage agile",
+      "page": 25
+    },
+    {
+      "title": "Annexe 1 — Transparence IA",
+      "page": 31
+    },
+    {
+      "title": "Annexe 2 — Backlog détaillé",
+      "page": 34
+    },
+    {
+      "title": "Annexe 3 — Données de planification",
+      "page": 39
+    },
+    {
+      "title": "Annexe 4 — Sources et contrôles de D",
+      "page": 42
+    },
+    {
+      "title": "Annexe 5 — Preuves initiales",
+      "page": 44
+    },
+    {
+      "title": "Annexe 6 — Fiabilisation et recettes",
+      "page": 47
+    }
+  ]
+}
