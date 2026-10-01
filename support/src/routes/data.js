@@ -80,9 +80,15 @@ router.get('/users', requireAuth, (req, res) => {
 
 // Messagerie coach / salarie.
 router.post('/messages', requireAuth, (req, res) => {
-  const m = { id: db.nextId('messages'), from: req.user.id, to: Number(req.body.to), body: req.body.body, at: new Date().toISOString() };
+  const recipientId = Number(req.body.to);
+  if (!Number.isSafeInteger(recipientId) || recipientId <= 0) {
+    return res.status(400).json({ error: 'valid recipient required' });
+  }
+  const recipient = db.query('users', (row) => row.id === recipientId && !row.deleted)[0];
+  if (!recipient) return res.status(404).json({ error: 'recipient not found' });
+  const m = { id: db.nextId('messages'), from: req.user.id, to: recipientId, body: req.body.body, at: new Date().toISOString() };
   db.insert('messages', m);
-  res.status(201).json(m);
+  return res.status(201).json(m);
 });
 router.get('/messages', requireAuth, (req, res) => {
   res.json(db.query('messages', (row) => row.to === req.user.id || row.from === req.user.id));

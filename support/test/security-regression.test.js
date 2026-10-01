@@ -303,6 +303,42 @@ test('PRIV-05 supprime les donnees associees et interdit tout nouvel acces', asy
   });
 });
 
+test('PRIV-05 ne reutilise pas un identifiant supprime pour des messages orphelins', async () => {
+  await withServer(async (base) => {
+    const deletion = await fetch(`${base}/api/me`, {
+      method: 'DELETE', headers: { authorization: 'Bearer unverified-token' },
+    });
+    assert.equal(deletion.status, 200);
+    assert.equal(db.raw().users.some((row) => row.id === 6), false);
+
+    const orphan = await fetch(`${base}/api/messages`, {
+      method: 'POST',
+      headers: { authorization: 'Bearer employee-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ to: 6, body: 'message qui ne doit pas etre conserve' }),
+    });
+    assert.equal(orphan.status, 404);
+    assert.equal(db.raw().messages.length, 0);
+
+    db.load();
+    const registration = await fetch(`${base}/api/register`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'replacement@example.test', password: 'Replacement!' }),
+    });
+    assert.equal(registration.status, 201);
+    const replacement = await registration.json();
+    assert.equal(replacement.user.id, 7);
+    assert.notEqual(replacement.user.id, 6);
+
+    db.load();
+    const messages = await fetch(`${base}/api/messages`, {
+      headers: { authorization: `Bearer ${replacement.token}` },
+    });
+    assert.equal(messages.status, 200);
+    assert.deepEqual(await messages.json(), []);
+    assert.equal(db.raw().idCounters.users, 7);
+  });
+});
+
 test('PRIV-07 invalide les anciens indicateurs et historise les choix et retraits', async () => {
   await withServer(async (base) => {
     const headers = { authorization: 'Bearer employee-token', 'content-type': 'application/json' };

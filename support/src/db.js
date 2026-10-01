@@ -11,14 +11,24 @@ const crypto = require('node:crypto');
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, '..', 'db', 'wellwork.json');
 
 const COLLECTIONS = ['users', 'sessions', 'questionnaires', 'messages', 'sessionsSport', 'exports', 'consents', 'coachAssignments'];
-let data = Object.fromEntries(COLLECTIONS.map((collection) => [collection, []]));
+let data = { ...Object.fromEntries(COLLECTIONS.map((collection) => [collection, []])), idCounters: {} };
 
 function load() {
   if (fs.existsSync(DB_FILE)) {
     const loaded = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-    data = Object.fromEntries(COLLECTIONS.map((collection) => [collection, Array.isArray(loaded[collection]) ? loaded[collection] : []]));
-    const invalidatedAt = new Date().toISOString();
     let changed = false;
+    data = { ...Object.fromEntries(COLLECTIONS.map((collection) => [collection, Array.isArray(loaded[collection]) ? loaded[collection] : []])), idCounters: {} };
+    const storedCounters = loaded.idCounters && typeof loaded.idCounters === 'object' ? loaded.idCounters : {};
+    for (const collection of COLLECTIONS) {
+      const observed = data[collection].reduce((maximum, row) => (
+        Number.isSafeInteger(row.id) ? Math.max(maximum, row.id) : maximum
+      ), 0);
+      const stored = Number.isSafeInteger(storedCounters[collection]) && storedCounters[collection] >= 0
+        ? storedCounters[collection] : 0;
+      data.idCounters[collection] = Math.max(observed, stored);
+      if (storedCounters[collection] !== data.idCounters[collection]) changed = true;
+    }
+    const invalidatedAt = new Date().toISOString();
     for (const consent of data.consents) {
       if (!consent.status) {
         consent.status = 'invalidated';
@@ -80,6 +90,9 @@ function query(collection, predicate) {
 
 function insert(collection, row) {
   data[collection].push(row);
+  if (Number.isSafeInteger(row.id) && row.id > (data.idCounters[collection] || 0)) {
+    data.idCounters[collection] = row.id;
+  }
   save();
   return row;
 }
@@ -100,8 +113,8 @@ function remove(collection, predicate) {
   return removed;
 }
 function nextId(collection) {
-  const rows = data[collection] || [];
-  return rows.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1;
+  if (!COLLECTIONS.includes(collection)) throw new TypeError('unknown collection');
+  return (data.idCounters[collection] || 0) + 1;
 }
 
 module.exports = { load, save, query, insert, update, remove, nextId, hashPassword, verifyPassword, raw: () => data, DB_FILE };
