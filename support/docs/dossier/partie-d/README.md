@@ -1,16 +1,16 @@
 # Partie D — Pilotage agile de la remédiation
 
-Version 1.0 — 1er octobre 2026. Référence de départ : `1a80376bf249dabdbc8782388fd8d94bfcafe4fe`, branche de revue. **Proposition pédagogique : aucune équipe mobilisée, aucun sprint réalisé, aucun budget engagé ni avis organisationnel obtenu.** Les actions ci-dessous sont à réaliser, sauf les acquis explicitement renvoyés à C.2.
+Version 1.1 — 1er octobre 2026. Référence de départ : `1a80376bf249dabdbc8782388fd8d94bfcafe4fe`. **Plan pédagogique proposé : ni équipe mobilisée, ni sprint réalisé, ni budget engagé.** Les acquis techniques restent ceux de C.2.
 
 ## Cadre, objectif et équipe proposée
 
-**Objectif produit :** disposer d'un périmètre WellWork dont les accès, les usages de données et les droits sont démontrables, afin de permettre au responsable compétent de décider d'un pilote restreint. Le renouvellement commercial ne doit pas conduire à ouvrir un traitement non justifié.
+**Objectif produit :** démontrer les accès, usages et droits nécessaires à une décision de pilote restreint. L'échéance commerciale ne justifie pas l'ouverture d'un traitement non autorisé.
 
 Cette planification prolonge [C.1 — actions](../partie-c/01-plan-de-remediation.md), [C.2 — corrections existantes](../partie-c/02-correctifs-et-preuves.md), [C.3 — risques résiduels](../partie-c/03-risques-residuels.md) et la [synthèse de revue, dont MSG-01](../00-synthese-et-statuts.md). Les références `RR-*`, `NC-*`, `PRIV-*`, `SEC-*` et `RT-*` conservent leur sens dans A à C.
 
-Les corrections déjà codées ne sont **ni reprogrammées comme neuves, ni recomptées dans le budget passé**. D-01 organise seulement leur recette sur la version retenue. Les dépendances juridiques, l'habilitation réelle et l'exploitation restent ouvertes. L'export assureur reste suspendu; les campagnes, le partage effectif à des tiers et le suivi sportif non implémenté ne sont pas ajoutés au périmètre.
+D-01 revalide les acquis, sans recompter les correctifs existants comme du travail neuf. Le plan traite les limites juridiques, d'habilitation et d'exploitation. Il exclut la réouverture de l'assureur, les campagnes, les nouveaux transferts et le suivi sportif non implémenté.
 
-**Méthode proposée :** trois sprints de deux semaines, avec revue à chaque fin de sprint et traitement immédiat des incidents. Le Product Owner ordonne le backlog; les personnes qui réalisent le travail réestiment et adaptent le plan. Les responsabilités et les événements s'appuient sur le Scrum Guide 2020 [S1](annexes/sources-et-controles.md#s1). Les durées, estimations et limites de travail en cours qui suivent sont des choix pour ce cas, non des prescriptions de Scrum. Les quatre jours du devoir ne sont pas la durée d'exécution de ce plan.
+**Méthode :** trois sprints de deux semaines, avec revue et adaptation; incidents traités immédiatement. Le Product Owner ordonne le backlog, les réalisateurs réestiment le travail. Les responsabilités et événements suivent le Scrum Guide 2020 [S1](annexes/sources-et-controles.md#s1); durées, charges et limites de travail en cours sont nos hypothèses. Les quatre jours du devoir ne sont pas la durée d'exécution de ce plan.
 
 | Rôle proposé | Contribution et responsabilité | Disponibilité par sprint de 10 jours ouvrés |
 |---|---|---:|
@@ -22,11 +22,11 @@ Les corrections déjà codées ne sont **ni reprogrammées comme neuves, ni reco
 | DPO/conseil indépendant | Avis sur finalités, information, droits, AIPD et incident; contrôle et alerte | 3 jours-personne |
 | RSSI/référent sécurité | Analyse des menaces, recette de sécurité et coordination technique d'incident | 3 jours-personne |
 
-Équipe de réalisation : six personnes (PO, SM, deux développeurs, QA, OPS), appuyées par deux experts distincts. Les temps partiels sont réservés dès la planification; QA et OPS travaillent avec les développeurs pendant le sprint, pas dans une phase de test finale. Ce choix évite que le développeur soit seul juge de son correctif tout en limitant les postes à temps plein.
+Six réalisateurs (PO, SM, deux DEV, QA, OPS), appuyés par deux experts distincts. Les temps partiels sont réservés au planning. QA/OPS interviennent pendant le sprint : la recette n'est pas une phase finale ni une simple auto-validation du développeur.
 
-Le **responsable du traitement réellement compétent**, déterminé selon A.2, décide du traitement et des risques. Le sponsor débloque moyens et arbitrages; il ne peut décider à la place d'un client responsable autonome. Le PO ne devient pas responsable du traitement par son titre. Le DPO conseille et contrôle, sans assumer la décision du responsable; il est distinct des fonctions décisionnelles PO/RSSI dans cette proposition [S2](annexes/sources-et-controles.md#s2). Sa présence proposée ne démontre pas une obligation de désignation dans ce cas.
+Le **responsable compétent selon A.2** décide des traitements et risques; ni le sponsor ni le titre de PO ne remplacent cette responsabilité. Le DPO conseille et contrôle, distinct des fonctions décisionnelles PO/RSSI [S2](annexes/sources-et-controles.md#s2). Sa présence proposée ne démontre pas une obligation de désignation.
 
-Hypothèses de dimensionnement : application fournie, un périmètre pilote limité, interlocuteurs client et exploitation identifiés, pas de refonte fonctionnelle générale. Volume, architecture de production et contrats étant inconnus, D-02/D-04 peuvent imposer un nouveau chiffrage. Le temps des signataires et des équipes clientes n'est pas assimilé à du temps de développement disponible.
+Dimensionnement : application fournie, pilote limité, interlocuteurs client/exploitation identifiés, sans refonte générale. D-02/D-04 peuvent imposer un nouveau chiffrage face aux volumes, contrats ou à l'architecture inconnus. Les attentes de signataires ne sont pas du temps de développement disponible.
 
 ## D.1 — Backlog, epics et critères d'acceptation
 
@@ -39,31 +39,23 @@ Un **epic** regroupe un objectif. Une **user story** décrit le résultat attend
 | E3 — Maîtriser les habilitations | Attribution, usage et révocation des accès démontrés | D-03, D-08, D-09, D-18 |
 | E4 — Maîtriser le cycle de vie des données | Conservation, effacement, stockage et reprise cohérents | D-04, D-10, D-13, D-14, D-15 |
 
-### Exemple complet — D-08, habilitations
+### Exemple — D-08, habilitations
 
-**User story :** en tant que responsable des habilitations d'une entreprise cliente, je veux attribuer et révoquer des accès à partir d'une identité et d'un rattachement vérifiés, afin de protéger les salariés sans empêcher les missions autorisées.
+**User story :** en tant que responsable des habilitations, je veux attribuer et révoquer des accès vérifiés pour protéger les salariés sans bloquer les missions autorisées.
 
-**Abuser story :** en tant que salarié malveillant, je déclare une autre entreprise ou exploite une ancienne affectation pour lire les questionnaires d'un tiers.
+**Abuser story :** en tant que salarié malveillant, je déclare une autre entreprise ou réutilise une affectation révoquée pour lire la santé d'un tiers.
 
-**Critères :** (1) une entreprise autodéclarée ne produit aucun droit; (2) un acteur non habilité ne peut créer un rattachement ou une affectation; (3) un RH ne reçoit pas de santé individuelle et un coach n'accède qu'aux salariés autorisés; (4) après révocation, une session encore active ne permet plus l'accès retiré; (5) un cas autorisé fonctionne et chaque changement laisse une trace sans contenu de santé. Preuves : tests API, procédure d'approbation et trace de révocation. Origine : `PRIV-01/02/03`, `NC-05`, `RR-02`. Charge : 6,25 jours-personne; dépendances D-03/D-01; sprint S2.
+**Acceptation :** autodéclaration sans droit; attribution interdite aux acteurs non habilités; RH sans santé individuelle; coach limité aux affectations; révocation effective dès la requête suivante; cas autorisé fonctionnel et changement tracé sans santé. Preuves : tests API et procédure d'approbation. Origine : `PRIV-01/02/03`, `NC-05`, `RR-02`; 6,25 JP; D-03/D-01; S2.
 
-### Exemple complet — D-13, conservation et droits
-
-**User story :** en tant que salarié ayant quitté le service, je veux que les données devenues inutiles soient traitées selon les règles annoncées et que ma demande de droits soit suivie.
-
-**Abuser story :** en tant qu'opérateur négligent, je conserve les anciens profils indéfiniment ou je déclare un effacement sans examiner les données liées.
-
-**Critères :** règle et événement de départ approuvés pour chaque catégorie; données à échéance traitées et données encore nécessaires préservées; exception documentée au lieu d'une destruction aveugle; exécution répétée sans effet indésirable; demande, réponse et délai applicables tracés. Preuves : fixtures avant/à/après échéance et test répété, sans réensemencement. Origine : `PRIV-05`, `NC-08/09`, `RR-06`; 4,25 jours-personne; D-10/D-01; S2. Les sauvegardes font l'objet de D-15, pas d'une promesse d'effacement universel.
-
-Les **20 fiches complètes**, avec critères vérifiables, rôles pilotes, dépendances et correspondance aux sources, sont dans le [backlog détaillé](annexes/backlog-detaille.md). Tous les tickets sont « proposés ». La préparation des textes dans ce devoir n'est pas leur réalisation en entreprise.
+Les **20 fiches complètes**, dont D-13 pour la conservation, sont dans le [backlog détaillé](annexes/backlog-detaille.md) : critères, pilotes, dépendances et sources. Tous les tickets restent proposés; leur rédaction n'exécute pas les actions en entreprise.
 
 ## D.2 — Estimation et priorisation justifiées
 
 ### Estimation
 
-Un jour-personne (JP) représente **7 heures de travail**, pas une journée de délai. Les estimations incluent analyse, réalisation, tests, revue technique et documentation du ticket. Les événements communs et réserves sont déduits séparément de la capacité. Les attentes d'un contrat signé ou d'une information client ne sont pas cachées dans une charge en JP.
+Un jour-personne (JP) représente **7 heures de travail**, pas une journée de délai. Les charges incluent analyse, réalisation, tests, revue et documentation. Événements et réserves sont déduits séparément; les attentes de contrats ou d'informations sont des dépendances extérieures.
 
-Les estimations initiales sont des hypothèses d'auteur. Avant sélection, DEV/QA/OPS et les experts concernés les revoient ensemble à partir des fichiers et critères. Aucun historique de vélocité n'est inventé et aucune conversion « un point = un jour » n'est utilisée. Les tickets de confiance faible sont réestimés après découverte; D-04 est précisément une exploration limitée, pas une promesse de migration déjà dimensionnée.
+DEV/QA/OPS et les experts revoient ces hypothèses avant sélection. Pas de vélocité inventée ni de conversion points/jours. Les tickets de confiance faible sont réestimés après découverte; D-04 est une exploration, pas une migration déjà dimensionnée.
 
 ### Ordre de traitement
 
@@ -90,7 +82,7 @@ Exemples : D-02 obtient `(2×4+3)/2,25 = 4,89`; D-08 obtient `11/6,25 = 1,76`. L
 | SM | 2 | 2 | 0 | 0 |
 | **Total JP** | **43** | **7,75** | **5,25** | **30** |
 
-Les heures de QA/OPS comprennent les synchronisations quotidiennes. La réserve n'est pas déjà remplie de tickets. Des JP inutilisés chez les développeurs ne remplacent pas un avis DPO ou une recette QA. Les tâches sont décomposées au planning et réparties entre les deux développeurs avec au plus 8 JP de tickets chacun.
+QA/OPS incluent les synchronisations quotidiennes; la réserve reste libre. Une disponibilité DEV ne remplace pas un avis DPO ou une recette QA. Au planning, répartir au plus 8 JP de tickets par développeur.
 
 ### Immédiat — distinct des sprints
 
@@ -114,7 +106,7 @@ Les semaines se comptent après la mobilisation initiale, sous réserve de dispo
 | S2 | 15,5 | 4 | 1,5 | 2 | 2 | 1,75 | **26,75** |
 | S3 | 11,5 | 4 | 4 | 1,75 | 2 | 2 | **25,25** |
 
-Les additions par rôle et les dépendances figurent dans l'annexe de planning. Le chemin sensible est `D-02 → D-03 → D-08 → D-14 → D-15 → D-17`; une autre branche passe par `D-10 → D-13`. Les totaux ne prouvent pas à eux seuls un ordonnancement : au planning, réserver les revues des experts et découper les dépendances internes avant d'engager le sprint. En S3, D-17 exige notamment des preuves D-15/D-18 disponibles avant la revue finale.
+Chemin sensible : `D-02 → D-03 → D-08 → D-14 → D-15 → D-17`, avec une branche `D-10 → D-13`. Les totaux ne prouvent pas l'ordonnancement : réserver les experts et séquencer les dépendances internes. En S3, D-15/D-18 doivent notamment fournir leurs preuves avant D-17. Le détail est en annexe.
 
 La fin de S2 représente le point court terme d'environ 30 jours de C.1, **pas une ouverture automatique**. La cible structurelle reste avant généralisation et sous 90 jours à confirmer. Entre la fin de S3 et Jp90 : contrôler le maintien des mesures et replanifier les écarts; cette période n'est pas fictivement remplie de sprints chiffrés.
 
@@ -128,7 +120,7 @@ Taux journaliers **purement hypothétiques**, non issus d'un devis : DEV 600 €
 
 Trois sprints : **80 850 €**; mobilisation immédiate : **3 487,50 €**; provision de recette/hébergement temporaire : **1 500 €**, à confirmer. Enveloppe : **85 837,50 € HT, soit environ 86 000 €**, sans ajouter une seconde réserve forfaitaire. Les 81,75 JP de tickets ne sont pas les 134,25 JP de capacité totale réservée. Le détail exact permet de vérifier les calculs, sans prétendre à cette précision sur les coûts réels.
 
-Sont exclus : coûts déjà engagés en A–C, incident réel au-delà de la mobilisation initiale, expertise contentieuse/certification, prestations spécialisées supplémentaires, temps interne des clients/signataires, exploitation après S3 et TVA. Si ces besoins apparaissent, le sponsor arbitre un complément avant engagement. Cette enveloppe est un scénario de planification, pas une promesse de conformité achetable à prix fixe.
+Exclusions : coûts passés A–C, incident au-delà de la mobilisation initiale, contentieux/certification, prestations spécialisées, temps des clients/signataires, exploitation après S3 et TVA. Tout besoin supplémentaire nécessite un arbitrage avant engagement; le budget n'est pas une promesse de conformité.
 
 ## D.4 — Definition of Done intégrant sécurité et conformité
 

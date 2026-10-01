@@ -34,9 +34,9 @@ E1; P1; 2 JP; pilote QA. Dépendance : SAFE-01. Origine : C.2, note de fiabilisa
 
 **User story :** en tant qu'auditeur, je veux rejouer les preuves et les tests sur les bonnes versions pour distinguer faille initiale et correction intégrée.
 
-**Abuser story :** en tant que lecteur trompé par une étiquette « confirmé », j'accepte une démonstration qui utilise le mauvais commit ou masque une erreur.
+**Abuser story :** en tant que contributeur négligent ou malveillant, je présente des résultats issus du mauvais commit comme des preuves valides afin de faire accepter une correction non démontrée.
 
-**Acceptation :** baseline et candidat identifiés par SHA; reproduction historique et tests corrigés séparés; résultats négatifs effectivement détectés; anciens liens de A/B normalisés vers le commit initial et lignes pertinentes; résultats expurgés conservés avec environnement. Une erreur d'outillage devient un écart, pas un résultat vert inventé. Preuve : sorties de recette et index de liens. Cette story n'est pas un nouveau correctif de chaque faille de C.2.
+**Acceptation :** baseline et candidat identifiés par SHA; reproduction historique et tests corrigés séparés; résultats négatifs effectivement détectés; liens de A/B vérifiés vers le commit initial et les lignes pertinentes; résultats expurgés conservés avec environnement. Une erreur d'outillage devient un écart, pas un résultat vert inventé. Preuve : sorties de recette et index de liens. Cette story maintient les acquis documentaires et techniques, sans les recompter comme des correctifs neufs de C.2.
 
 ### D-02 — Décider des finalités et du périmètre licite
 
