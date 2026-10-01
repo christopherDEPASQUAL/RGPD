@@ -55,14 +55,42 @@ async function api(path, opts = {}) {
   const r = await fetch('/api' + path, opts);
   return r.json();
 }
+function resetPreferences() {
+  document.getElementById('marketing').checked = false;
+  document.getElementById('thirdParty').checked = false;
+}
+async function loadPreferences() {
+  resetPreferences();
+  if (!token) return null;
+  const preferences = await api('/preferences');
+  if (typeof preferences.marketing === 'boolean' && typeof preferences.thirdParty === 'boolean') {
+    document.getElementById('marketing').checked = preferences.marketing;
+    document.getElementById('thirdParty').checked = preferences.thirdParty;
+  }
+  return preferences;
+}
 async function login() {
+  token = '';
+  localStorage.removeItem('token');
+  resetPreferences();
   const r = await api('/login', { method: 'POST', body: JSON.stringify({ email: val('email'), password: val('password') }) });
-  if (r.token) { token = r.token; localStorage.setItem('token', token); }
+  if (r.token) {
+    token = r.token;
+    localStorage.setItem('token', token);
+    await loadPreferences();
+  }
   out(r);
 }
 async function register() {
+  token = '';
+  localStorage.removeItem('token');
+  resetPreferences();
   const r = await api('/register', { method: 'POST', body: JSON.stringify({ email: val('email'), password: val('password') }) });
-  if (r.token) { token = r.token; localStorage.setItem('token', token); }
+  if (r.token) {
+    token = r.token;
+    localStorage.setItem('token', token);
+    await loadPreferences();
+  }
   out(r);
 }
 async function sendQuestionnaire() {
@@ -77,6 +105,10 @@ async function savePreferences() {
     }),
   }));
 }
+window.addEventListener('DOMContentLoaded', async () => {
+  resetPreferences();
+  if (token) await loadPreferences();
+});
 </script>
 </body>
 </html>
