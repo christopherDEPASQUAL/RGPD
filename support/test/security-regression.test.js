@@ -120,12 +120,35 @@ test('SEC-03 impose des sessions aleatoires, expirables et revocables', async ()
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 60_000).toISOString(), revokedAt: new Date().toISOString(),
     });
+    db.insert('sessions', {
+      token: 'invalid-expiry-token', userId: user.id,
+      createdAt: new Date().toISOString(), expiresAt: 'not-a-date', revokedAt: null,
+    });
+    db.insert('sessions', {
+      token: 'missing-expiry-token', userId: user.id,
+      createdAt: new Date().toISOString(), revokedAt: null,
+    });
     assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer expired-token' } })).status, 401);
     assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer revoked-token' } })).status, 401);
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer invalid-expiry-token' } })).status, 401);
+    assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: 'Bearer missing-expiry-token' } })).status, 401);
 
     const oldSeedToken = Buffer.from('1.1.1709800000000').toString('base64');
     assert.equal((await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${oldSeedToken}` } })).status, 401);
   });
+});
+
+test('SEC-03 refuse une duree de session invalide au demarrage', () => {
+  const previous = process.env.SESSION_TTL_MS;
+  try {
+    for (const invalid of ['not-a-number', '0', '-1', String(24 * 60 * 60 * 1000 + 1)]) {
+      process.env.SESSION_TTL_MS = invalid;
+      assert.throws(() => createApp(), /SESSION_TTL_MS/);
+    }
+  } finally {
+    if (previous === undefined) delete process.env.SESSION_TTL_MS;
+    else process.env.SESSION_TTL_MS = previous;
+  }
 });
 
 test('SEC-04 exclut les secrets des journaux', async () => {

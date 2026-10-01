@@ -3,11 +3,12 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const { currentUser } = require('./auth');
+const { currentUser, validateSessionConfiguration } = require('./auth');
 const accounts = require('./routes/accounts');
 const data = require('./routes/data');
 
 function createApp() {
+  validateSessionConfiguration();
   db.load();
   const app = express();
   app.use(express.json());

@@ -3,7 +3,21 @@
 const crypto = require('node:crypto');
 const db = require('./db');
 
-const SESSION_TTL_MS = Number(process.env.SESSION_TTL_MS || 60 * 60 * 1000);
+const DEFAULT_SESSION_TTL_MS = 60 * 60 * 1000;
+const MAX_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function sessionTtlMs() {
+  const configured = process.env.SESSION_TTL_MS;
+  const ttl = configured === undefined ? DEFAULT_SESSION_TTL_MS : Number(configured);
+  if (!Number.isSafeInteger(ttl) || ttl <= 0 || ttl > MAX_SESSION_TTL_MS) {
+    throw new RangeError(`SESSION_TTL_MS must be an integer between 1 and ${MAX_SESSION_TTL_MS}`);
+  }
+  return ttl;
+}
+
+function validateSessionConfiguration() {
+  sessionTtlMs();
+}
 
 // Emission d'un jeton de session.
 function issueToken(user) {
@@ -13,7 +27,7 @@ function issueToken(user) {
     token,
     userId: user.id,
     createdAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
+    expiresAt: new Date(now.getTime() + sessionTtlMs()).toISOString(),
     revokedAt: null,
   });
   return token;
@@ -24,7 +38,8 @@ function currentUser(req) {
   const token = auth.replace(/^Bearer\s+/i, '');
   if (!token) return null;
   const s = db.query('sessions', (row) => row.token === token)[0];
-  if (!s || s.revokedAt || !s.expiresAt || Date.parse(s.expiresAt) <= Date.now()) return null;
+  const expiresAt = s?.expiresAt ? Date.parse(s.expiresAt) : Number.NaN;
+  if (!s || s.revokedAt || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
   const user = db.query('users', (row) => row.id === s.userId)[0];
   return user && !user.deleted ? user : null;
 }
@@ -53,4 +68,4 @@ function revokeUserSessions(userId) {
   );
 }
 
-module.exports = { issueToken, currentUser, requireAuth, requireAdmin, revokeUserSessions };
+module.exports = { issueToken, currentUser, requireAuth, requireAdmin, revokeUserSessions, validateSessionConfiguration };
