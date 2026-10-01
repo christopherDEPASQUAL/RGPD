@@ -21,7 +21,7 @@ function writeDatabase(mutate) {
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
   const contents = {
     users: [
-      { id: 1, email: 'employee@acme.example', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', passwordHash: 'unused', deleted: false },
+      { id: 1, email: 'employee@acme.example', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', birthDate: '1990-01-01', marketingOptIn: true, passwordHash: 'unused', deleted: false },
       { id: 2, email: 'other@globex.example', company: 'Globex', tenantId: 'tenant-globex', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'employee', passwordHash: 'unused', deleted: false },
       { id: 3, email: 'admin@wellwork.example', company: 'WellWork', role: 'admin', passwordHash: 'unused', deleted: false },
       { id: 4, email: 'rh@acme.example', company: 'ACME', tenantId: 'tenant-acme', tenantVerifiedAt: '2026-01-01T00:00:00.000Z', role: 'rh', passwordHash: 'unused', deleted: false },
@@ -239,13 +239,23 @@ test('PRIV-01/02/03 applique un refus par defaut et des habilitations verifiees'
 
     const rhProfile = await get('/api/users/1', 'rh-token');
     assert.equal(rhProfile.status, 200);
-    assert.equal(Object.hasOwn(await rhProfile.json(), 'questionnaires'), false);
+    const rhPayload = await rhProfile.json();
+    for (const field of ['questionnaires', 'birthDate', 'marketingOptIn', 'tenantId', 'passwordHash']) {
+      assert.equal(Object.hasOwn(rhPayload, field), false);
+    }
     assert.equal((await get('/api/users/2', 'rh-token')).status, 403);
 
     const coachProfile = await get('/api/users/1', 'coach-token');
     assert.equal(coachProfile.status, 200);
-    assert.equal((await coachProfile.json()).questionnaires.length, 1);
+    const coachPayload = await coachProfile.json();
+    assert.equal(coachPayload.questionnaires.length, 1);
+    assert.equal(Object.hasOwn(coachPayload, 'birthDate'), false);
+    assert.equal(Object.hasOwn(coachPayload, 'marketingOptIn'), false);
     assert.equal((await get('/api/users/2', 'coach-token')).status, 403);
+
+    const selfPayload = await (await get('/api/users/1', 'employee-token')).json();
+    assert.equal(selfPayload.birthDate, '1990-01-01');
+    assert.equal(selfPayload.questionnaires.length, 1);
 
     assert.equal((await get('/api/users/1', 'unverified-token')).status, 403);
     assert.equal((await get('/api/users', 'unverified-token')).status, 403);

@@ -1,25 +1,24 @@
 'use strict';
 
+const SELF_PROFILE_FIELDS = [
+  'id', 'email', 'firstName', 'lastName', 'company', 'birthDate',
+  'role', 'marketingOptIn', 'createdAt',
+];
+const DIRECTORY_PROFILE_FIELDS = ['id', 'email', 'firstName', 'lastName', 'company', 'role'];
+
+function selectFields(value, fields) {
+  if (!value) return value;
+  return Object.fromEntries(fields
+    .filter((field) => Object.hasOwn(value, field))
+    .map((field) => [field, value[field]]));
+}
+
 function userWithoutSecrets(user) {
-  if (!user) return user;
-  const safe = { ...user };
-  delete safe.passwordHash;
-  delete safe.passwordMigratedAt;
-  delete safe.tenantId;
-  delete safe.tenantVerifiedAt;
-  return safe;
+  return selectFields(user, SELF_PROFILE_FIELDS);
 }
 
 function directoryUser(user) {
-  const safe = userWithoutSecrets(user);
-  return {
-    id: safe.id,
-    email: safe.email,
-    firstName: safe.firstName,
-    lastName: safe.lastName,
-    company: safe.company,
-    role: safe.role,
-  };
+  return selectFields(user, DIRECTORY_PROFILE_FIELDS);
 }
 
 module.exports = { userWithoutSecrets, directoryUser };

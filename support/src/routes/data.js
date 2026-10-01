@@ -49,7 +49,7 @@ router.get('/users/:id', requireAuth, (req, res) => {
   const coachAccess = hasVerifiedCoachAssignment(req.user, u);
   if (!isSelf && !rhAccess && !coachAccess) return res.status(403).json({ error: 'forbidden' });
 
-  const response = userWithoutSecrets(u);
+  const response = isSelf ? userWithoutSecrets(u) : directoryUser(u);
   if (isSelf || coachAccess) {
     response.questionnaires = db.query('questionnaires', (row) => row.userId === requestedId);
   }
