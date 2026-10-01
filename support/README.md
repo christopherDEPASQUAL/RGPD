@@ -72,7 +72,7 @@ Un clone contenant l'historique et des dépendances installées avec le lockfile
 
 Les parties A et B décrivent l'état initial; C décrit les correctifs et leurs limites. Voir la [synthèse et les statuts](docs/dossier/00-synthese-et-statuts.md) et la [note de fiabilisation](docs/audit/preuves/04-fiabilisation-et-recette.md).
 
-Le workflow `Audit review validation` teste cette branche de revue sous Linux et Windows. Il conserve pendant sept jours uniquement les résultats expurgés de recette, pas les bases ni les journaux applicatifs. Un workflow vert ne démontre ni conformité globale ni aptitude à la production.
+Le workflow `Audit review validation` teste sous Linux et Windows les pushes sur `main`, `remediation/**`, `review/**` et `docs/**` qui modifient `support/**` ou le workflow, ainsi que toutes les pull requests. Les changements d'interface, de seed et de documentation sont donc inclus. Un déclenchement manuel est aussi déclaré; GitHub le rend disponible lorsque le workflow existe sur la branche par défaut. Les permissions restent en lecture seule, sans déploiement. Les résultats expurgés sont conservés sept jours, sans bases ni journaux applicatifs. Un workflow vert ne démontre ni conformité globale ni aptitude à la production.
 
 ## Stack
 

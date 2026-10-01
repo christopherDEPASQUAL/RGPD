@@ -2,14 +2,14 @@ name: Audit review validation
 
 on:
   push:
-    branches: [review/fiabilisation-audit]
+    branches: [main, 'remediation/**', 'review/**', 'docs/**']
     paths:
       - '.github/workflows/audit-review.yml'
-      - 'support/src/**'
-      - 'support/test/**'
-      - 'support/scripts/**'
-      - 'support/package*.json'
-      - 'support/eslint.config.js'
+      - 'support/**'
+  # Validate every proposed integration, including documentation-only changes.
+  # Use pull_request, not pull_request_target: untrusted code gets no write token.
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
