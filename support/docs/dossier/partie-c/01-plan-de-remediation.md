@@ -23,8 +23,9 @@ Les échéances ci-dessous sont des **jalons proposés**, à compter d'une déci
 | Rendre l'effacement actif dans le stockage de démonstration | `PRIV-05`, NC-08, AIPD R4 | Réalisé et testé dans la base active | Responsable des droits + développement | Compte, sessions et données associées supprimés; reconnexion impossible |
 | Invalider les faux consentements historiques et recueillir deux choix distincts | `PRIV-07`, NC-01 | Réalisé et testé | Produit + DPO/conseil | Valeurs historiques non reconnues comme accords; choix facultatifs et retraits historisés |
 | Empêcher la collecte réelle de santé tant que les articles 6 et 9 et l'information ne sont pas établis | NC-02/03, AIPD R1 | **Non réalisé : obstacle à la production** | Responsable du traitement, conseillé par le DPO | Fondements documentés, notice article 13, nécessité des champs, destinataires, retrait/droits et AIPD validés |
+| Qualifier le signalement de fuite et préserver les preuves | B.2/B.3, scénarios S1–S6, RR-09 | **À engager sans retard; aucune qualification réelle fournie dans l'exercice** | Responsable incident + responsable du traitement, conseillé par le DPO | Déterminer nature, périmètre et T0; si une violation avec risque est constatée, notifier dans les meilleurs délais et, si possible, sous 72 h, avec compléments ultérieurs ([CNIL](https://www.cnil.fr/fr/services-en-ligne/notifier-une-violation-de-donnees-personnelles)) |
 
-Les correctifs techniques sont présents dans la branche; ils ne justifient pas à eux seuls l'ouverture du questionnaire à de vraies personnes. Tant que le dernier critère n'est pas satisfait, le support doit rester limité à des données fictives.
+Les correctifs techniques sont présents dans la branche; ils ne justifient pas à eux seuls l'ouverture du questionnaire à de vraies personnes. Tant que les conditions relatives à la santé, à l'information et aux habilitations ne sont pas satisfaites, le support doit rester limité à des données fictives.
 
 ## Court terme — avant pilote, cible proposée sous 30 jours
 
@@ -34,7 +35,6 @@ Les correctifs techniques sont présents dans la branche; ils ne justifient pas 
 4. **Minimiser.** Définir un schéma fermé pour les réponses de santé et justifier chaque champ, notamment antécédents et traitements. Les RH restent exclus des questionnaires individuels.
 5. **Traiter l'historique.** Organiser le renouvellement contrôlé des mots de passe SHA-256 qui ne se reconnectent pas, protéger ou purger les anciens journaux selon les besoins de preuve, et vérifier les anciennes copies/exportations.
 6. **Définir les durées.** Arrêter des critères par finalité pour comptes, questionnaires, décisions de préférence, journaux, archives et sauvegardes; tester la purge et la restauration sans relancer le seed sur une base existante.
-7. **Qualifier le signalement de fuite.** Préserver les preuves, déterminer T0 et le périmètre, puis appliquer B.3 si une violation réelle est établie. Les correctifs du dépôt ne prouvent pas qu'une notification réelle a été faite ou qu'elle n'est pas nécessaire.
 
 ## Structurel — avant généralisation, cible proposée sous 90 jours puis en continu
 
