@@ -5,7 +5,13 @@ const checks = {
   'SEC-01': (f) => f.httpStatus === 200 && f.harmlessMarkerObserved === true,
   'PRIV-01': (f) => f.httpStatus === 200 && f.otherUserReturned === true && f.questionnairesReturned > 0,
   'PRIV-02': (f) => f.httpStatus === 200 && f.employeeCouldListUsers === true && f.returnedUsers > 1 && f.returnedCompanies > 1,
-  'PRIV-03': (f) => f.crossTenantProfileReturned === true && f.crossTenantDirectoryReturned === true,
+  // The preserved harness compares an optional company to the caller's tenant:
+  // an error response with no company can therefore set its profile flag to true.
+  // Corroborate both flags with the successful profile/directory observations.
+  'PRIV-03': (f, observations) => f.crossTenantProfileReturned === true
+    && f.crossTenantDirectoryReturned === true
+    && checks['PRIV-01'](observations['PRIV-01'])
+    && checks['PRIV-02'](observations['PRIV-02']),
   'SEC-02': (f) => f.httpStatus === 200 && f.employeeBecameAdmin === true,
   'PRIV-04': (f) => f.directRhExportStatus === 200 && f.directRhExportRows > 0 && f.chainedEmployeeExportStatus === 200 && f.chainedEmployeeExportRows > 0,
   'SEC-03': (f) => f.preloadedSessionStatus === 200 && f.expiryFieldPresent === false,
@@ -18,12 +24,15 @@ const checks = {
 };
 
 function validateObservations(observed) {
+  const observations = Object.fromEntries(Object.keys(checks).map((id) => {
+    const value = observed?.[id];
+    return [id, value && typeof value === 'object' && !Array.isArray(value) ? { ...value } : {}];
+  }));
   const findings = {};
   const failed = [];
   for (const [id, check] of Object.entries(checks)) {
-    const value = observed?.[id];
-    const finding = value && typeof value === 'object' && !Array.isArray(value) ? { ...value } : {};
-    const confirmed = Boolean(check(finding));
+    const finding = { ...observations[id] };
+    const confirmed = Boolean(check(finding, observations));
     finding.status = confirmed ? (id === 'CODE-01' ? 'confirmed-by-static-analysis' : 'confirmed-by-execution') : 'not-reproduced';
     findings[id] = finding;
     if (!confirmed) failed.push(id);
