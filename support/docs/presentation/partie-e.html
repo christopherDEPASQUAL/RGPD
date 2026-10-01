@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WellWork — Décision de remédiation</title>
+  <style>
+    :root { --ink:#132e35; --muted:#4d646a; --teal:#116d66; --paper:#f5f3ed; --line:#ccd6d2; --red:#963f36; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#d7deda; color:var(--ink); font-family:"Segoe UI",Arial,sans-serif; }
+    .slide { position:relative; width:1280px; height:720px; margin:24px auto; padding:44px 62px 66px; background:var(--paper); break-after:page; overflow:hidden; }
+    .slide:last-child { break-after:auto; }
+    .top { display:flex; justify-content:space-between; align-items:center; font-size:16px; letter-spacing:1.5px; text-transform:uppercase; font-weight:650; }
+    .top span:last-child { color:var(--muted); font-weight:400; }
+    h1 { margin:36px 0 24px; font-size:65px; line-height:1.07; letter-spacing:-2px; font-weight:650; }
+    h2 { margin:27px 0 13px; font-size:43px; line-height:1.13; letter-spacing:-1px; font-weight:650; }
+    h3 { font-size:28px; line-height:1.16; margin:14px 0; font-weight:650; }
+    p { margin:0; font-size:24px; line-height:1.36; }
+    .sub { color:var(--muted); font-size:23px; }
+    .footer { position:absolute; bottom:22px; left:62px; right:62px; border-top:1px solid var(--line); padding-top:11px; display:flex; justify-content:space-between; gap:20px; font-size:14px; color:var(--muted); }
+    .tag { display:inline-block; padding:7px 12px; font-size:15px; font-weight:650; letter-spacing:.5px; border-radius:5px; background:#dceae4; color:var(--teal); }
+    .warning { background:#f1dfd9; color:var(--red); }
+    .cover { background:var(--ink); color:#fff; }
+    .cover .top span:last-child,.cover .footer { color:#c0d2d0; }
+    .cover .footer { border-color:#466065; }
+    .cover h1 em { color:#8cdbbc; font-style:normal; }
+    .cover .lead { font-size:27px; max-width:950px; color:#dbe7e5; }
+    .facts { display:grid; grid-template-columns:1fr 1fr 1fr; gap:27px; margin:35px 0 27px; }
+    .fact { border-top:2px solid #689d8d; padding-top:13px; }
+    .fact strong { display:block; font-size:23px; font-weight:600; }
+    .fact span { display:block; color:#c0d2d0; font-size:19px; margin-top:8px; }
+    .decision-banner { font-size:23px; border-left:4px solid #8cdbbc; padding:12px 18px; background:#23434a; }
+    .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:23px; margin-top:35px; }
+    .card { background:#fff; padding:27px; border:1px solid var(--line); border-radius:10px; }
+    .number { font-size:17px; color:var(--teal); font-weight:700; letter-spacing:2px; }
+    .card p { font-size:23px; color:var(--muted); }
+    .impact { display:block; margin-top:22px; font-size:23px; font-weight:600; color:var(--red); }
+    .bottom-note { font-size:21px; margin-top:27px; color:var(--muted); }
+    .columns { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:29px; }
+    .panel { padding:22px 29px; border-radius:10px; background:#e1ece5; }
+    .panel.open { background:#ece7df; }
+    .panel h3 { margin-top:15px; }
+    ul { padding-left:23px; margin:16px 0 0; }
+    li { font-size:23px; line-height:1.3; margin-bottom:15px; padding-left:4px; }
+    .evidence { display:flex; align-items:center; gap:24px; margin-top:24px; padding:17px 23px; border:1px solid var(--line); border-radius:8px; }
+    .evidence > strong { font-size:32px; color:var(--teal); white-space:nowrap; }
+    .evidence p { font-size:21px; }
+    .urgent { margin-top:22px; padding:13px 20px; background:#f1dfd9; color:var(--red); font-size:21px; border-radius:7px; }
+    .timeline { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:19px; }
+    .phase { border-top:4px solid var(--teal); background:#fff; padding:15px 18px; }
+    .phase .period { font-size:16px; text-transform:uppercase; color:var(--teal); font-weight:700; }
+    .phase h3 { font-size:24px; margin:9px 0; }
+    .phase p { font-size:20px; color:var(--muted); }
+    .budget { display:grid; grid-template-columns:1fr 1.3fr; align-items:center; gap:35px; margin-top:22px; }
+    .price { font-size:62px; line-height:1; font-weight:650; letter-spacing:-2px; color:var(--teal); }
+    .price small { font-size:24px; letter-spacing:0; }
+    .budget-label { font-size:18px; margin-top:9px; color:var(--muted); }
+    .budget-detail { display:grid; grid-template-columns:1fr auto; gap:6px 25px; font-size:19px; }
+    .budget-detail strong { text-align:right; font-weight:600; }
+    .assumption { font-size:16px; line-height:1.35; color:var(--muted); margin-top:16px; }
+    .asks { margin-top:29px; display:grid; gap:15px; }
+    .ask { display:grid; grid-template-columns:60px 1fr; gap:19px; padding:16px 22px; background:white; border:1px solid var(--line); border-radius:8px; align-items:center; }
+    .ask .digit { font-size:35px; color:var(--teal); font-weight:650; }
+    .ask h3 { margin:0 0 5px; font-size:26px; }
+    .ask p { color:var(--muted); font-size:21px; }
+    .final-line { margin-top:25px; font-size:26px; color:var(--teal); font-weight:600; }
+    @page { size:1280px 720px; margin:0; }
+    @media print {
+      body { background:white; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+      .slide { margin:0; }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide cover" aria-label="1. Situation">
+    <div class="top"><span>WellWork / Comité de direction</span><span>Audit · 1er octobre 2026</span></div>
+    <h1>Protéger les salariés.<br><em>Rétablir la confiance.</em></h1>
+    <p class="lead">Des corrections démontrées, mais des conditions<br>encore ouvertes avant toute utilisation réelle.</p>
+    <div class="facts">
+      <div class="fact"><strong>Un contrat à renouveler</strong><span>Un grand client exige un audit.</span></div>
+      <div class="fact"><strong>Une fuite signalée</strong><span>Origine et étendue non établies.</span></div>
+      <div class="fact"><strong>Des défauts reproduits</strong><span>Sur la version initiale fictive.</span></div>
+    </div>
+    <div class="decision-banner">Recommandation : rester sur données fictives et financer la remise à niveau.</div>
+    <div class="footer"><span>Exercice pédagogique · Aucun incident réel confirmé par cet audit</span><span>Sources : énoncé, B.2, C.3 · 01 / 05</span></div>
+  </section>
+
+  <section class="slide" aria-label="2. Risques">
+    <div class="top"><span>WellWork / Risques prioritaires</span><span>Version initiale auditée</span></div>
+    <h2>Trois risques qui menacent la confiance</h2>
+    <p class="sub">Les défauts sont démontrés ; leurs conséquences restent des risques, pas des dommages constatés.</p>
+    <div class="cards">
+      <div class="card"><span class="number">01 / CONFIDENTIALITÉ</span><h3>La santé accessible<br>à des tiers</h3><p>Lecture entre entreprises et export trop large.</p><span class="impact">Discrimination,<br>chantage, perte d'intimité.</span></div>
+      <div class="card"><span class="number">02 / CONTRÔLE DES ACCÈS</span><h3>Des privilèges<br>détournables</h3><p>Rôle modifiable, connexions mal protégées, secrets exposés.</p><span class="impact">Usurpation et accès<br>non autorisés.</span></div>
+      <div class="card"><span class="number">03 / DROITS DES SALARIÉS</span><h3>Un départ<br>sans effacement</h3><p>Données et accès conservés après une demande de suppression.</p><span class="impact">Perte de maîtrise<br>et exposition prolongée.</span></div>
+    </div>
+    <p class="bottom-note">Pour WellWork : risque sur le renouvellement du contrat, la réputation et les coûts de réponse.</p>
+    <div class="footer"><span>Ne pas attribuer la fuite signalée à une faille sans preuve</span><span>Sources : A.3–A.4, B.1–B.3 · 02 / 05</span></div>
+  </section>
+
+  <section class="slide" aria-label="3. Corrections et limites">
+    <div class="top"><span>WellWork / État actuel</span><span>Corrigé ne signifie pas prêt à ouvrir</span></div>
+    <h2>Des protections renforcées. Des limites explicites.</h2>
+    <div class="columns">
+      <div class="panel"><span class="tag">RÉALISÉ SUR LE SUPPORT</span><h3>Accès et données mieux protégés</h3><ul><li>Accès aux données restreints ; export assureur suspendu.</li><li>Connexions renforcées ; mots de passe mieux protégés.</li><li>Effacement dans la base active ; choix marketing distincts.</li></ul></div>
+      <div class="panel open"><span class="tag warning">AVANT TOUTE DONNÉE RÉELLE</span><h3>Des décisions restent nécessaires</h3><ul><li>Justifier les usages de santé et informer les salariés.</li><li>Organiser l'attribution et le retrait des droits d'accès.</li><li>Traiter les anciennes copies, les durées et la restauration.</li></ul></div>
+    </div>
+    <div class="evidence"><strong>30 tests réussis</strong><p>Version <strong>3d00b4b</strong> vérifiée sous Linux et Windows.<br>Preuve des comportements testés, pas certification de conformité.</p></div>
+    <div class="footer"><span>Pas de déploiement réel attesté · Pas de consentement santé créé par les choix marketing</span><span>Sources : C.2–C.3, recette GitHub · 03 / 05</span></div>
+  </section>
+
+  <section class="slide" aria-label="4. Plan et budget">
+    <div class="top"><span>WellWork / Plan proposé</span><span>Six semaines après la mobilisation initiale</span></div>
+    <h2>Avancer par étapes, décider sur preuves</h2>
+    <div class="urgent"><strong>Immédiatement :</strong> qualifier le signalement, préserver les preuves et contenir toute exposition identifiée.</div>
+    <div class="timeline">
+      <div class="phase"><span class="period">Semaines 1–2</span><h3>Sécuriser et décider</h3><p>Usages autorisés, règles d'accès, anciens secrets.</p></div>
+      <div class="phase"><span class="period">Semaines 3–4</span><h3>Rendre les droits effectifs</h3><p>Information, choix, habilitations et conservation.</p></div>
+      <div class="phase"><span class="period">Semaines 5–6</span><h3>Éprouver et arbitrer</h3><p>Stockage, restauration, décision d'essai limité.</p></div>
+    </div>
+    <div class="budget">
+      <div><div class="price">≈ 86 000 € <small>HT</small></div><p class="budget-label">Enveloppe proposée, non engagée</p></div>
+      <div class="budget-detail"><span>Équipe réservée, trois périodes</span><strong>80 850 €</strong><span>Mobilisation initiale</span><strong>3 487,50 €</strong><span>Environnement de test</span><strong>1 500 €</strong><span>Total calculé</span><strong>85 837,50 € HT</strong></div>
+    </div>
+    <p class="assumption">Équipe : 2 développeurs + qualité, exploitation, pilotage et experts sécurité/protection des données, selon disponibilités.<br>Taux hypothétiques, pas un devis. Réserves incluses. Hors coûts passés, crise prolongée et exploitation après six semaines.<br>Délais soumis aux décisions, contrats et moyens disponibles ; aucune ouverture automatique en fin de période.</p>
+    <div class="footer"><span>La réponse au signalement n'attend pas le calendrier du projet</span><span>Source : D, capacité et budget · 04 / 05</span></div>
+  </section>
+
+  <section class="slide" aria-label="5. Décisions attendues">
+    <div class="top"><span>WellWork / Décisions attendues</span><span>À soumettre, pas déjà approuvées</span></div>
+    <h2>Trois décisions à prendre aujourd'hui</h2>
+    <div class="asks">
+      <div class="ask"><span class="digit">01</span><div><h3>Maintenir les restrictions</h3><p>Données fictives uniquement ; export assureur fermé ; signalement traité sans attendre.</p></div></div>
+      <div class="ask"><span class="digit">02</span><div><h3>Réserver les moyens et nommer les décideurs</h3><p>Enveloppe d'environ 86 000 € HT ; responsables métier, sécurité et protection des données.</p></div></div>
+      <div class="ask"><span class="digit">03</span><div><h3>Conditionner tout essai réel aux preuves</h3><p>Usages justifiés, droits maîtrisés, contrats et restauration vérifiés ; sinon, reporter l'ouverture.</p></div></div>
+    </div>
+    <p class="final-line">Financer une réduction démontrable du risque,<br>pas promettre une conformité automatique.</p>
+    <div class="footer"><span>La décision sur les traitements appartient au responsable compétent, avec les avis nécessaires</span><span>Sources : A.2, C.3, D · 05 / 05</span></div>
+  </section>
+</body>
+</html>

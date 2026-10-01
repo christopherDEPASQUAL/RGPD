@@ -8,6 +8,7 @@ node_modules/
 
 # Runtime data and logs
 db/wellwork.json
+db/wellwork.local.json
 logs/
 *.log
 

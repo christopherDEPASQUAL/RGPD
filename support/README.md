@@ -4,7 +4,18 @@ Support pédagogique B2B de bien-être au travail. Données fictives uniquement 
 
 ## Installation et lancement local
 
-Depuis `support/`, avec Git et une version compatible de Node.js (`>=20`, recette de revue sous Node 22) :
+Utiliser **Node.js 22** pour reproduire la recette de référence (Windows et Linux), avec Git et npm. L'indication minimale historique `>=20` de `package.json` ne garantit pas la compatibilité de l'outillage avec toutes les premières versions de Node 20.
+
+Cloner explicitement la branche du rendu, sans clone superficiel :
+
+```bash
+git clone --branch review/retouches-audit-partie-d https://github.com/christopherDEPASQUAL/RGPD.git
+cd RGPD/support
+```
+
+Le dépôt doit être accessible au correcteur. La branche `main` conserve le support vulnérable, pas les corrections. Le fichier de remise doit préciser la branche finale et son commit; ne pas se fier à une ancienne branche par défaut.
+
+Depuis `support/` :
 
 ```bash
 npm ci --ignore-scripts
@@ -71,6 +82,12 @@ Un clone contenant l'historique et des dépendances installées avec le lockfile
 ## Documents et validation de revue
 
 Les parties A et B décrivent l'état initial; C décrit les correctifs et leurs limites. Voir la [synthèse et les statuts](docs/dossier/00-synthese-et-statuts.md) et la [note de fiabilisation](docs/audit/preuves/04-fiabilisation-et-recette.md).
+
+Le [dossier final PDF A–D et annexes](docs/rendu/Dossier_remediation_WellWork.pdf) est accompagné des [instructions de génération et contrôles](docs/rendu/README.md). La présentation E reste un fichier distinct.
+
+L'[annexe de transparence IA](docs/dossier/annexes/01-transparence-ia.md) rassemble les outils et demandes, sept erreurs ou imprécisions corrigées et la distinction entre contrôles outillés et vérifications personnelles déclarées. Elle inclut la contribution à E et à l'assemblage du PDF A–D.
+
+La [présentation E en PDF](docs/presentation/partie-e.pdf) comprend cinq diapositives pour le comité de direction. Les [notes orales](docs/presentation/notes-orales.md) et les [instructions de modification/export](docs/presentation/README.md) sont disponibles; une répétition personnelle chronométrée reste nécessaire.
 
 Le workflow `Audit review validation` teste sous Linux et Windows les pushes sur `main`, `remediation/**`, `review/**` et `docs/**` qui modifient `support/**` ou le workflow, ainsi que toutes les pull requests. Les changements d'interface, de seed et de documentation sont donc inclus. Un déclenchement manuel est aussi déclaré; GitHub le rend disponible lorsque le workflow existe sur la branche par défaut. Les permissions restent en lecture seule, sans déploiement. Les résultats expurgés sont conservés sept jours, sans bases ni journaux applicatifs. Un workflow vert ne démontre ni conformité globale ni aptitude à la production.
 

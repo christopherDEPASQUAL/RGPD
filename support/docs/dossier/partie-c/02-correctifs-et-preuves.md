@@ -2,11 +2,11 @@
 
 - **Version :** 1.2 — 1er octobre 2026
 - **Référence des constats :** [partie B.1](../partie-b/01-constats-securite.md) et [matrice initiale](../../audit/02-matrice-des-constats.md)
-- **Principe :** chaque statut ci-dessous décrit le code de la branche de remédiation, pas une production inconnue.
+- **Périmètre :** code corrigé de la branche de remédiation, testé sur données fictives.
 
 ## Traçabilité des corrections
 
-| Constat | Commit | Correction vérifiée | Limite à ne pas masquer |
+| Constat | Commit | Correction vérifiée | Limite restante |
 |---|---|---|---|
 | `SEC-01` | `4663155` | Suppression de `new Function`; recherche par paramètres déclaratifs et test de rejet d'une expression exécutable | La validation métier des filtres autorisés reste à maintenir lors de toute extension |
 | `SEC-02` | `60015bf` | `PATCH /api/me` limité à `firstName`, `lastName`, `birthDate`; rôle, entreprise et périmètre refusés | La route d'administration des rôles et son processus d'approbation restent à concevoir |
@@ -62,43 +62,19 @@ git diff --check
 
 Le seed doit être vérifié avec `DB_FILE` pointant vers un fichier temporaire. Il ne faut pas exécuter `npm run seed` sur la base locale existante pour masquer un défaut de migration ou faire passer un test.
 
-## Résultats réellement obtenus
+## Résultats de validation
 
-### Recette historique — 18 tests
+Le commit `3d00b4b` a été vérifié sur copie propre sous Windows (Node `v24.11.0`, npm `11.12.1`) et par la [CI Linux/Windows](https://github.com/christopherDEPASQUAL/RGPD/actions/runs/36909164181).
 
-Recette exécutée le 1er octobre 2026 depuis `support/`, sous Windows/PowerShell, avec Node `v24.11.0` et npm `11.12.1`, sur le HEAD technique `61e7316`. Les fichiers de tests et de seed étaient temporaires; la base locale existante n'a pas été réensemencée.
-
-| Commande ou contrôle | Résultat observé |
+| Contrôle | Résultat |
 |---|---|
-| `npm test` | **18 tests réussis, 0 échec** : 14 tests sécurité/confidentialité, 3 tests de fonctionnement et 1 test UI |
-| `npm run lint` | Succès, aucun diagnostic ESLint |
-| `node scripts/audit/verify-cvss.js` | 10 scores du rapport et exemples FIRST vérifiés |
-| `git diff --check` | Succès, aucune erreur d'espace dans les changements réalisés |
-| `DB_FILE=<fichier temporaire> node db/seed.js` | 63 utilisateurs, 132 questionnaires, 0 session active et 63 empreintes au nouveau format paramétré; fichier temporaire supprimé après lecture |
+| Tests du code corrigé | **30 réussis, 0 échec** : application, interface, outillage de preuve et références historiques |
+| Lint | Aucun diagnostic ESLint |
+| Calculs CVSS | 10 scores du rapport vérifiés |
+| Reproduction sur la version initiale `e16cedc` | 12 constats dynamiques et 1 statique retrouvés; `summary.failed` vide |
 
-Le comptage est celui du lanceur Node; les intitulés détaillés restent visibles dans la sortie de recette. Les assertions multiples d'un même scénario, par exemple les quatre états d'expiration refusés, restent regroupées dans un seul test nommé.
+Les deux vérifications répondent à des questions différentes : `npm test` contrôle les corrections; `reproduce-findings.js` retrouve les défauts dans les fichiers extraits du commit initial et vérifiés par empreinte. Ce dernier remplace l'ancien lanceur, qui copiait le répertoire de travail et pouvait donc tester la mauvaise version.
 
-### Recette locale de clôture du fond — 30 tests
+La suite est passée de 18 tests sur `61e7316` à 30 après la revue. Les recettes intermédiaires, dont celle sur `261b27b` avec retouches locales, restent détaillées dans la [note de fiabilisation](../../audit/preuves/04-fiabilisation-et-recette.md). Les essais utilisent des fichiers temporaires et préservent la base locale.
 
-Contrôles réexécutés le 1er octobre 2026 sous Windows/PowerShell, Node `v24.11.0` et npm `11.12.1`, sur `review/retouches-audit-partie-d` : HEAD `261b27bfa2f990c6920e74bd3a10d3a3c9cf094f` **avec modifications locales non commitées**, notamment le validateur d'observations et les tests de références documentaires. Les résultats portent sur cet état de travail, pas sur le commit seul; le détail des retouches figure dans la [note de fiabilisation](../../audit/preuves/04-fiabilisation-et-recette.md).
-
-| Commande ou contrôle | Résultat observé |
-|---|---|
-| `npm test` | **30 tests réussis, 0 échec** : régressions applicatives, fonctionnement, interface, outillage de preuve et références historiques |
-| `npm run lint` | Succès, aucun diagnostic ESLint |
-| `node scripts/audit/verify-cvss.js` | 10 scores du rapport et contrôles de calcul vérifiés |
-| `node scripts/audit/reproduce-findings.js` | Sur le commit initial vérifié : 12 constats dynamiques et 1 statique retrouvés; `summary.failed` vide. Ce résultat confirme les défauts historiques, pas les corrections |
-| `git diff --check` | Aucune erreur d'espace; avertissements de conversion LF/CRLF distincts d'un échec |
-| Base locale | Empreinte SHA-256 identique avant/après les contrôles; aucun réensemencement de cette base |
-
-Cette recette complète celle à 18 tests sans la réécrire. Elle n'atteste ni une exécution du workflow GitHub sur ces retouches ni un déploiement. Après enregistrement des modifications, identifier le commit final et refaire la recette de livraison sur une copie propre.
-
-## Baseline historique et branche corrigée
-
-Lors de la recette `61e7316` ci-dessus, le script historique copiait le **code présent dans le répertoire de travail** : afficher le hash `e16cedc…` ne suffisait pas à prouver la provenance. Cette limite explique pourquoi la recette C utilisait ses propres tests de non-régression.
-
-Depuis la [revue de fiabilisation](../../audit/preuves/04-fiabilisation-et-recette.md), `node scripts/audit/reproduce-findings.js` extrait et vérifie les objets Git du commit initial, sans changer le répertoire de travail. Les scénarios historiques sont préservés; le lanceur valide leurs observations. La preuve des corrections reste distincte : `npm test` s'exécute sur le code corrigé avec des fichiers temporaires. Les résultats de la recette initiale ne sont pas réattribués à cette nouvelle version de l'outillage.
-
-## Interprétation des résultats
-
-Un test vert démontre le comportement couvert dans cet environnement pédagogique. Il ne démontre ni le déploiement en production, ni la licéité de la collecte de santé, ni l'efficacité d'une procédure organisationnelle absente. Les réserves correspondantes sont consignées dans [C.3](03-risques-residuels.md).
+Ces résultats valident les comportements testés. Les décisions sur les données de santé, les habilitations et l'exploitation restent à traiter dans [C.3](03-risques-residuels.md) et D.

@@ -1,6 +1,6 @@
 # Partie D — Pilotage agile de la remédiation
 
-Version 1.1 — 1er octobre 2026. Référence de départ : `1a80376bf249dabdbc8782388fd8d94bfcafe4fe`. **Plan pédagogique proposé : ni équipe mobilisée, ni sprint réalisé, ni budget engagé.** Les acquis techniques restent ceux de C.2.
+Version 1.2 — 1er octobre 2026. **Plan proposé pour traiter les risques restants après les corrections de C.2.** L'équipe, les disponibilités et le budget ci-dessous sont des hypothèses de planification.
 
 ## Cadre, objectif et équipe proposée
 
@@ -14,11 +14,11 @@ D-01 revalide les acquis, sans recompter les correctifs existants comme du trava
 
 | Rôle proposé | Contribution et responsabilité | Disponibilité par sprint de 10 jours ouvrés |
 |---|---|---:|
-| Deux développeurs full-stack — DEV | API, interface, migrations, tests et revues croisées; répartition équilibrée, pas un développeur supposé travailler 16 jours | 20 jours-personne |
+| Deux développeurs full-stack — DEV | API, interface, migrations, tests et revues croisées; charge répartie entre les deux développeurs | 20 jours-personne |
 | Référent qualité — QA | Scénarios adverses et légitimes, recette indépendante de l'auteur, conservation des preuves | 6 jours-personne |
 | Ingénieur exploitation — OPS | Configuration, données héritées, restauration et supervision | 6 jours-personne |
 | Product Owner — PO | Objectif produit, ordre des travaux, clarification des règles avec les clients et suivi des décisions | 3 jours-personne |
-| Scrum Master — SM | Facilitation, résolution des obstacles et amélioration du fonctionnement; ne distribue pas autoritairement les tâches | 2 jours-personne |
+| Scrum Master — SM | Facilitation, résolution des obstacles et amélioration du fonctionnement | 2 jours-personne |
 | DPO/conseil indépendant | Avis sur finalités, information, droits, AIPD et incident; contrôle et alerte | 3 jours-personne |
 | RSSI/référent sécurité | Analyse des menaces, recette de sécurité et coordination technique d'incident | 3 jours-personne |
 
@@ -47,7 +47,7 @@ Un **epic** regroupe un objectif. Une **user story** décrit le résultat attend
 
 **Acceptation :** autodéclaration sans droit; attribution interdite aux acteurs non habilités; RH sans santé individuelle; coach limité aux affectations; révocation effective dès la requête suivante; cas autorisé fonctionnel et changement tracé sans santé. Preuves : tests API et procédure d'approbation. Origine : `PRIV-01/02/03`, `NC-05`, `RR-02`; 6,25 JP; D-03/D-01; S2.
 
-Les **20 fiches complètes**, dont D-13 pour la conservation, sont dans le [backlog détaillé](annexes/backlog-detaille.md) : critères, pilotes, dépendances et sources. Tous les tickets restent proposés; leur rédaction n'exécute pas les actions en entreprise.
+Les **20 fiches complètes**, dont D-13 pour la conservation, sont dans le [backlog détaillé](annexes/backlog-detaille.md) : critères, pilotes, dépendances et sources.
 
 ## D.2 — Estimation et priorisation justifiées
 
@@ -55,7 +55,7 @@ Les **20 fiches complètes**, dont D-13 pour la conservation, sont dans le [back
 
 Un jour-personne (JP) représente **7 heures de travail**, pas une journée de délai. Les charges incluent analyse, réalisation, tests, revue et documentation. Événements et réserves sont déduits séparément; les attentes de contrats ou d'informations sont des dépendances extérieures.
 
-DEV/QA/OPS et les experts revoient ces hypothèses avant sélection. Pas de vélocité inventée ni de conversion points/jours. Les tickets de confiance faible sont réestimés après découverte; D-04 est une exploration, pas une migration déjà dimensionnée.
+DEV/QA/OPS et les experts revoient les estimations avant sélection. Les tickets de confiance faible sont réestimés après découverte; D-04 explore notamment les contraintes du stockage avant de dimensionner la migration.
 
 ### Ordre de traitement
 
@@ -154,7 +154,7 @@ Les événements ordinaires des réalisateurs représentent environ 6 h 45 par s
 
 Tableau proposé : **À clarifier → Prêt → En cours → En revue/recette → Terminé**, avec état « Bloqué » et motif/date visibles. « Prêt » exige sources, critères, charge, dépendances et interlocuteur identifiés; c'est une convention locale, pas une obligation Scrum. Limiter à deux implémentations et deux revues en parallèle. Une voie urgente P0 est autorisée; son temps réel consomme la réserve puis entraîne un arbitrage de périmètre.
 
-### Indicateurs sans faux résultats
+### Indicateurs de suivi
 
 | Indicateur | Calcul/preuve et fréquence | Signal déclenchant une action |
 |---|---|---|
@@ -165,7 +165,7 @@ Tableau proposé : **À clarifier → Prêt → En cours → En revue/recette �
 | Flux livré et réouvertures | Tickets réellement conformes à la DoD et tickets rouverts pour défaut; revue de sprint | Réouvertures répétées : revoir critères et tests en rétrospective |
 | Coût prévisionnel à terminaison | Coût constaté + coût du travail restant + besoins hors hypothèses; hebdomadaire | Dépassement de l'enveloppe : arbitrage avant engagement |
 
-Aucune vélocité, aucun taux de réussite futur ni burndown fictif n'est rempli. Les résultats de recette antérieurs restent ceux de la note de revue, pas ceux de ces sprints proposés.
+Ces indicateurs seront renseignés pendant l'exécution du plan.
 
 ### Risques du projet et réponses
 
@@ -179,7 +179,7 @@ Aucune vélocité, aucun taux de réussite futur ni burndown fictif n'est rempli
 | Preuves fragiles ou récit IA non vérifié | Mauvais commit, lien relatif ambigu, affirmation sans test | Référent audit traite D-01; revue humaine des liens et sources; aucune erreur IA inventée pour l'annexe |
 | Pression commerciale | Demande d'ouverture malgré un RR bloquant | Responsable compétent maintient le refus ou réduit explicitement le périmètre; un calendrier ne régularise pas un traitement |
 
-**Décisions à soumettre :** réserver les compétences et l'enveloppe proposée; nommer les interlocuteurs/décideurs; choisir le périmètre après D-02; maintenir les fonctions non justifiées fermées; examiner les preuves à chaque revue. La rédaction de D n'exécute aucune de ces décisions.
+**Décisions à soumettre :** réserver les compétences et l'enveloppe proposée; nommer les interlocuteurs/décideurs; choisir le périmètre après D-02; maintenir les fonctions non justifiées fermées; examiner les preuves à chaque revue.
 
 ---
 
