@@ -13,63 +13,63 @@ La gravité qualifie ici l'importance du constat : **critique** pour une exposit
 ## NC-01 — Choix marketing/tiers imposés et retrait incohérent
 
 - **Articles :** 5(1)(a), 6(1)(a), 7(1) et 7(3), si ces usages sont fondés sur le consentement.
-- **Preuve :** `PRIV-07`; [accounts.js](../../../src/routes/accounts.js), lignes 20–32, impose `marketingOptIn`, `marketing` et `thirdParty` à `true` sans choix envoyé. Lignes 52–58, modifier le premier champ ne met pas à jour `consents`.
+- **Preuve :** `PRIV-07`; [accounts.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/accounts.js#L20-L58), lignes 20–32, impose `marketingOptIn`, `marketing` et `thirdParty` à `true` sans choix envoyé. Lignes 52–58, modifier le premier champ ne met pas à jour `consents`.
 - **Risque :** utilisation contre la volonté de la personne; impossibilité de prouver un choix ou un retrait cohérent.
 - **Gravité : élevée.** Indicateurs artificiels confirmés; aucune campagne effective ni transmission marketing démontrée. Remplacer les valeurs imposées par un choix facultatif, spécifique, traçable et réversible.
 
 ## NC-02 — Licéité de la collecte santé et de l'export non démontrée
 
 - **Articles :** 5(1)(a), 5(2), 6 et 9(1)–(2).
-- **Preuve :** [data.js](../../../src/routes/data.js), lignes 11–19 et 48–55, collecte puis restitue des réponses de santé sans contrôle d'un fondement santé; [interface](../../../public/index.html), lignes 28–32 et 59–61, sans recueil explicite. Aucun justificatif d'exception de l'article 9 dans le support.
+- **Preuve :** [data.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/data.js#L11-L55), lignes 11–19 et 48–55, collecte puis restitue des réponses de santé sans contrôle d'un fondement santé; [interface](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/public/index.html#L28-L61), lignes 28–32 et 59–61, sans recueil explicite. Aucun justificatif d'exception de l'article 9 dans le support.
 - **Risque :** perte de maîtrise d'informations médicales et usage professionnel ou assurantiel défavorable.
 - **Gravité : critique.** Collecte/export confirmés; fondement externe non démontré, non présumé inexistant. Aucun consentement générique marketing ne couvre la santé. Appliquer l'analyse RT-02/RT-05 d'A.2 avant une collecte réelle.
 
 ## NC-03 — Information absente des parcours fournis
 
 - **Articles :** 12(1), 13(1)–(2).
-- **Preuve :** [index.html](../../../public/index.html), lignes 16–61 : formulaires d'inscription et de santé sans notice ni lien exposant responsable, finalités, bases, destinataires, durées et droits.
+- **Preuve :** [index.html](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/public/index.html#L16-L61), lignes 16–61 : formulaires d'inscription et de santé sans notice ni lien exposant responsable, finalités, bases, destinataires, durées et droits.
 - **Risque :** divulgation de données sans compréhension des usages, destinataires ou possibilités de recours.
 - **Gravité : élevée.** Absence confirmée dans l'interface; une information éventuellement remise hors application reste à vérifier. Ajouter une information accessible au moment de la collecte, sans confondre information et consentement.
 
 ## NC-04 — Données excessives dans les réponses et exports
 
 - **Articles :** 5(1)(c), 25(2).
-- **Preuve :** `PRIV-06`, `PRIV-04`; [accounts.js](../../../src/routes/accounts.js), lignes 34, 45 et 49, renvoie l'utilisateur complet; [data.js](../../../src/routes/data.js), lignes 23–34 et 48–55, expose profils, `passwordHash` et, selon la route, questionnaires.
+- **Preuve :** `PRIV-06`, `PRIV-04`; [accounts.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/accounts.js#L34-L49), lignes 34, 45 et 49, renvoie l'utilisateur complet; [data.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/data.js#L23-L55), lignes 23–34 et 48–55, expose profils, `passwordHash` et, selon la route, questionnaires.
 - **Risque :** attaques hors ligne sur les mots de passe, circulation inutile de données identifiantes et médicales.
 - **Gravité : élevée.** Excès confirmés. Définir des réponses autorisées par usage; ne jamais retourner l'empreinte du mot de passe. La nécessité de champs tels que la date de naissance reste à justifier, pas à supposer.
 
 ## NC-05 — Confidentialité et cloisonnement défaillants
 
 - **Articles :** 5(1)(f), 25(2), 32(1)(b) et 32(2).
-- **Preuve :** `PRIV-01/02/03/04`, `SEC-01/02`; [data.js](../../../src/routes/data.js), lignes 23–34 et 48–55 : lecture de tiers et accès interentreprises; [accounts.js](../../../src/routes/accounts.js), lignes 52–58 : auto-attribution du rôle admin; [db.js](../../../src/db.js), lignes 32–37 : évaluation du filtre JavaScript. Chaîne `SEC-02` → `PRIV-04` reproduite.
+- **Preuve :** `PRIV-01/02/03/04`, `SEC-01/02`; [data.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/data.js#L23-L55), lignes 23–34 et 48–55 : lecture de tiers et accès interentreprises; [accounts.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/accounts.js#L52-L58), lignes 52–58 : auto-attribution du rôle admin; [db.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/db.js#L32-L37), lignes 32–37 : évaluation du filtre JavaScript. Chaîne `SEC-02` → `PRIV-04` reproduite.
 - **Risque :** divulgation massive, discrimination et chantage; altération potentielle des informations.
 - **Gravité : critique.** Accès et élévation confirmés; l'exploitation comme origine de la fuite du sujet n'est pas prouvée. Corriger ensemble autorisations, appartenance vérifiée à l'entreprise et filtre; un simple contrôle « connecté » ne suffit pas.
 
 ## NC-06 — Protection insuffisante des authentifiants et sessions
 
 - **Articles :** 5(1)(f), 32(1)(b) et 32(2).
-- **Preuve :** `SEC-03/05`; [auth.js](../../../src/auth.js), lignes 7–21 : jeton déterministe encodé et absence d'expiration; [seed.js](../../../db/seed.js), lignes 71–72 : session admin ancienne acceptée; [db.js](../../../src/db.js), lignes 25–28 : SHA-256 non salé.
+- **Preuve :** `SEC-03/05`; [auth.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/auth.js#L7-L21), lignes 7–21 : jeton déterministe encodé et absence d'expiration; [seed.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/db/seed.js#L71-L72), lignes 71–72 : session admin ancienne acceptée; [db.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/db.js#L25-L28), lignes 25–28 : SHA-256 non salé.
 - **Risque :** usurpation et accès prolongé à la santé d'autrui, particulièrement après compromission d'un jeton ou d'empreintes.
 - **Gravité : élevée.** Mécanismes et réutilisation confirmés. Le RGPD n'impose pas un algorithme nommé; l'insuffisance s'apprécie au regard du risque. Prévoir stockage adapté, jetons aléatoires, expiration et révocation.
 
 ## NC-07 — Mots de passe en clair dans les journaux
 
 - **Articles :** 5(1)(c), 5(1)(f), 32(1)(b).
-- **Preuve :** `SEC-04`; [accounts.js](../../../src/routes/accounts.js), lignes 15 et 39; [logger.js](../../../src/logger.js), lignes 6–14 : mot de passe sentinelle retrouvé dans le journal temporaire.
+- **Preuve :** `SEC-04`; [accounts.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/accounts.js#L15-L39), lignes 15 et 39; [logger.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/logger.js#L6-L14), lignes 6–14 : mot de passe sentinelle retrouvé dans le journal temporaire.
 - **Risque :** usurpation par une personne accédant aux logs, y compris sur d'autres services en cas de réutilisation du mot de passe.
 - **Gravité : élevée.** Journalisation confirmée, accès extérieur aux logs non démontré. Exclure les secrets à la source et contrôler fichiers/stdout; traiter les traces existantes sans détruire des preuves nécessaires à l'investigation.
 
 ## NC-08 — Suppression sans effacement ni fermeture effective
 
 - **Articles :** 5(1)(e), 12(2), 17(1), sous réserve des exceptions de 17(3).
-- **Preuve :** `PRIV-05`; [accounts.js](../../../src/routes/accounts.js), lignes 62–64 : seul un marquage est écrit; lignes 37–45 et [auth.js](../../../src/auth.js), lignes 15–21 : reconnexion et session toujours acceptées. Compte, questionnaire, sessions et consentement conservés dans la preuve.
+- **Preuve :** `PRIV-05`; [accounts.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/routes/accounts.js#L37-L64), lignes 62–64 : seul un marquage est écrit; lignes 37–45 et [auth.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/auth.js#L15-L21), lignes 15–21 : reconnexion et session toujours acceptées. Compte, questionnaire, sessions et consentement conservés dans la preuve.
 - **Risque :** faux sentiment de départ du service et exposition prolongée d'informations sensibles.
 - **Gravité : élevée.** Comportement confirmé; l'API annonce un marquage, pas un effacement réalisé. Définir la procédure d'effacement lorsqu'il est dû, les exceptions motivées, la révocation et les délais. Toute demande n'exige pas la destruction immédiate de toute trace.
 
 ## NC-09 — Conservation non maîtrisée dans le support
 
 - **Articles :** 5(1)(e), 5(2), 25(1).
-- **Preuve :** [db.js](../../../src/db.js), lignes 16–23 et 40–53 : persistance sans purge; [logger.js](../../../src/logger.js), lignes 6–14 : ajout continu; RT-01 à RT-07 d'A.1 sans politique de durée fournie. `PRIV-05` illustre la persistance après fermeture demandée.
+- **Preuve :** [db.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/db.js#L16-L53), lignes 16–23 et 40–53 : persistance sans purge; [logger.js](https://github.com/christopherDEPASQUAL/RGPD/blob/e16cedcf0f8adb359621240366c8f0cbb251b8c9/support/src/logger.js#L6-L14), lignes 6–14 : ajout continu; RT-01 à RT-07 d'A.1 sans politique de durée fournie. `PRIV-05` illustre la persistance après fermeture demandée.
 - **Risque :** accumulation de profils anciens et augmentation de la durée d'exposition possible.
 - **Gravité : élevée.** Absence de purge applicative confirmée; absence de politique organisationnelle ou de rotation externe non prouvée. Obtenir puis appliquer des critères de durée par finalité, y compris archives et sauvegardes; aucune durée arbitraire présentée comme légale.
 
