@@ -169,7 +169,7 @@ test('SEC-04 exclut les secrets des journaux', async () => {
   });
 });
 
-test('SEC-05 utilise scrypt et migre un ancien SHA-256 apres connexion valide', async () => {
+test('SEC-05 configure scrypt et migre les anciens formats apres connexion valide', async () => {
   await withServer(async (base) => {
     const legacyPassword = 'LegacyPassword!';
     const legacyHash = crypto.createHash('sha256').update(legacyPassword).digest('hex');
@@ -188,9 +188,21 @@ test('SEC-05 utilise scrypt et migre un ancien SHA-256 apres connexion valide', 
     });
     assert.equal(accepted.status, 200);
     const migrated = db.raw().users[0].passwordHash;
-    assert.match(migrated, /^scrypt\$[a-f0-9]{32}\$[a-f0-9]{128}$/);
+    assert.match(migrated, /^scrypt\$N=32768,r=8,p=3\$[a-f0-9]{32}\$[a-f0-9]{128}$/);
     assert.notEqual(migrated, legacyHash);
     assert.equal(db.verifyPassword(legacyPassword, migrated).valid, true);
+
+    const oldScryptPassword = 'OldScryptPassword!';
+    const oldSalt = crypto.randomBytes(16);
+    const oldScryptHash = `scrypt$${oldSalt.toString('hex')}$${crypto.scryptSync(oldScryptPassword, oldSalt, 64).toString('hex')}`;
+    db.update('users', (user) => user.id === 2, { passwordHash: oldScryptHash });
+    assert.deepEqual(db.verifyPassword(oldScryptPassword, oldScryptHash), { valid: true, needsMigration: true });
+    const oldScryptLogin = await fetch(`${base}/api/login`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'other@globex.example', password: oldScryptPassword }),
+    });
+    assert.equal(oldScryptLogin.status, 200);
+    assert.match(db.raw().users.find((user) => user.id === 2).passwordHash, /^scrypt\$N=32768,r=8,p=3\$/);
 
     const sharedPassword = 'SamePassword!';
     for (const email of ['salt-a@example.test', 'salt-b@example.test']) {

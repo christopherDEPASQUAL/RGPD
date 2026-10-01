@@ -55,12 +55,14 @@ function save() {
 }
 
 const SCRYPT_KEY_LENGTH = 64;
+const SCRYPT_PARAMETERS = Object.freeze({ N: 2 ** 15, r: 8, p: 3, maxmem: 64 * 1024 * 1024 });
+const SCRYPT_PARAMETER_LABEL = `N=${SCRYPT_PARAMETERS.N},r=${SCRYPT_PARAMETERS.r},p=${SCRYPT_PARAMETERS.p}`;
 
 function hashPassword(pwd) {
   if (typeof pwd !== 'string' || !pwd) throw new TypeError('password must be a non-empty string');
   const salt = crypto.randomBytes(16);
-  const derived = crypto.scryptSync(pwd, salt, SCRYPT_KEY_LENGTH);
-  return `scrypt$${salt.toString('hex')}$${derived.toString('hex')}`;
+  const derived = crypto.scryptSync(pwd, salt, SCRYPT_KEY_LENGTH, SCRYPT_PARAMETERS);
+  return `scrypt$${SCRYPT_PARAMETER_LABEL}$${salt.toString('hex')}$${derived.toString('hex')}`;
 }
 
 function verifyPassword(pwd, stored) {
@@ -70,13 +72,28 @@ function verifyPassword(pwd, stored) {
     const legacy = Buffer.from(stored, 'hex');
     return { valid: crypto.timingSafeEqual(candidate, legacy), needsMigration: true };
   }
-  const [scheme, saltHex, derivedHex, extra] = stored.split('$');
-  if (scheme !== 'scrypt' || extra || !/^[a-f0-9]{32}$/i.test(saltHex) || !/^[a-f0-9]{128}$/i.test(derivedHex)) {
+  const parts = stored.split('$');
+  let saltHex;
+  let derivedHex;
+  let options;
+  let needsMigration;
+  if (parts.length === 3 && parts[0] === 'scrypt') {
+    [, saltHex, derivedHex] = parts;
+    options = undefined;
+    needsMigration = true;
+  } else if (parts.length === 4 && parts[0] === 'scrypt' && parts[1] === SCRYPT_PARAMETER_LABEL) {
+    [, , saltHex, derivedHex] = parts;
+    options = SCRYPT_PARAMETERS;
+    needsMigration = false;
+  } else {
     return { valid: false, needsMigration: false };
   }
-  const candidate = crypto.scryptSync(pwd, Buffer.from(saltHex, 'hex'), SCRYPT_KEY_LENGTH);
+  if (!/^[a-f0-9]{32}$/i.test(saltHex) || !/^[a-f0-9]{128}$/i.test(derivedHex)) {
+    return { valid: false, needsMigration: false };
+  }
+  const candidate = crypto.scryptSync(pwd, Buffer.from(saltHex, 'hex'), SCRYPT_KEY_LENGTH, options);
   const expected = Buffer.from(derivedHex, 'hex');
-  return { valid: crypto.timingSafeEqual(candidate, expected), needsMigration: false };
+  return { valid: crypto.timingSafeEqual(candidate, expected), needsMigration };
 }
 
 // Recherche interne avec un predicat construit par le serveur.
