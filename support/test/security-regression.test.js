@@ -401,6 +401,13 @@ test('PRIV-05 masque les anciens comptes en suppression logique apres rechargeme
     assert.equal((await fetch(`${base}/api/me`, {
       headers: { authorization: 'Bearer employee-token' },
     })).status, 401);
+    const message = await fetch(`${base}/api/messages`, {
+      method: 'POST',
+      headers: { authorization: 'Bearer rh-token', 'content-type': 'application/json' },
+      body: JSON.stringify({ to: 1, body: 'destinataire en suppression logique' }),
+    });
+    assert.equal(message.status, 404);
+    assert.equal(db.raw().messages.length, 0);
   }, (contents) => {
     contents.users[0].deleted = true;
     contents.users[0].deletedAt = '2025-01-01T00:00:00.000Z';
