@@ -43,7 +43,7 @@ router.post('/questionnaires', requireAuth, (req, res) => {
 router.get('/users/:id', requireAuth, (req, res) => {
   const requestedId = Number(req.params.id);
   const u = db.query('users', (row) => row.id === requestedId)[0];
-  if (!u) return res.status(404).json({ error: 'not found' });
+  if (!u || u.deleted) return res.status(404).json({ error: 'not found' });
   const isSelf = req.user.id === u.id;
   const rhAccess = req.user.role === 'rh' && sharesVerifiedTenant(req.user, u);
   const coachAccess = hasVerifiedCoachAssignment(req.user, u);

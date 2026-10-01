@@ -339,6 +339,29 @@ test('PRIV-05 ne reutilise pas un identifiant supprime pour des messages orpheli
   });
 });
 
+test('PRIV-05 masque les anciens comptes en suppression logique apres rechargement', async () => {
+  await withServer(async (base) => {
+    db.load();
+    for (const token of ['rh-token', 'coach-token']) {
+      const profile = await fetch(`${base}/api/users/1`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      assert.equal(profile.status, 404);
+    }
+    const directory = await fetch(`${base}/api/users?role=employee`, {
+      headers: { authorization: 'Bearer rh-token' },
+    });
+    assert.equal(directory.status, 200);
+    assert.equal((await directory.json()).some((row) => row.id === 1), false);
+    assert.equal((await fetch(`${base}/api/me`, {
+      headers: { authorization: 'Bearer employee-token' },
+    })).status, 401);
+  }, (contents) => {
+    contents.users[0].deleted = true;
+    contents.users[0].deletedAt = '2025-01-01T00:00:00.000Z';
+  });
+});
+
 test('PRIV-07 invalide les anciens indicateurs et historise les choix et retraits', async () => {
   await withServer(async (base) => {
     const headers = { authorization: 'Bearer employee-token', 'content-type': 'application/json' };
